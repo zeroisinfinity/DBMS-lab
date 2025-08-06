@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/Practice/basics_mysqll.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/Practice/inter_mysql.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/Practice/misc.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/lab/dbms_28july.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/mine/SQLQuery set (1).sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/mine/script1.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/test.sql" dialect="MySQL" />
+  </component>
+</project>
