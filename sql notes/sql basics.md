@@ -14,7 +14,7 @@ Highly organized data stored in fixed schemas (e.g., rows/columns). Easily queri
 | Databases        | MySQL, PostgreSQL, Oracle, SQL Server                                    |
 | Spreadsheets     | Excel (.xlsx), Google Sheets                                             |
 | ERP/CRM Systems  | Salesforce, SAP (customer/contact data with fields)                      |
-| Sensor Data      | `| timestamp | sensor_id | temperature |` (in SQL tables)                  |
+| Sensor Data      | ` timestamp`  `sensor_id`  `temperature ` (in SQL tables)                  |
 | Inventory Data   | `product_id`, `product_name`, `price`, `stock_quantity` (tabular form)   |
 | Finance          | Bank transactions, invoices, ledger entries (all tabular in DB)          |
 
