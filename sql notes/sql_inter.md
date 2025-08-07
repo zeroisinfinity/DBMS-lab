@@ -149,7 +149,9 @@ My code
 SELECT 'test', '"test"', '""test""', 'te''st';
 -- SELECT "They've found this tutorial to be helpful";
 SELECT 'They\'ve found this tutorial to be helpful';
-SELECT 'They\'ve responded, "We found this tutorial helpful"'; --  a string containing this ' will recognize the backslash as an instruction to cancel out the single quote’s syntactical meaning and instead insert it into the string as an apostrophe.
+SELECT 'They\'ve responded, "We found this tutorial helpful"'; --  a string containing this ' will 
+recognize the backslash as an instruction to cancel out the single quote’s 
+syntactical meaning and instead insert it into the string as an apostrophe.
 ```
 
 ### Why Doubling Works
@@ -181,7 +183,9 @@ You're working with MySQL here, and it's absolutely crucial to understand the di
 
 ```sql
 SELECT HEX(desp), desp FROM AI_models where ai_id in (359,364); -- BINARY LEVEL INSPECTION
--- Your MySQL `LIKE` query failed because it searched for a straight ASCII apostrophe (`'`), but the actual data in the `desp` column uses a Unicode curly apostrophe (`’`), so the pattern didn't match—`'Meta's%'` ≠ `'Meta’s%'` due to the character encoding difference between the two apostrophes.
+-- Your MySQL `LIKE` query failed because it searched for a straight ASCII apostrophe (`'`), 
+but the actual data in the `desp` column uses a Unicode curly apostrophe (`’`), so the pattern didn't match—`'Meta's%'` ≠ `'Meta’s%'` 
+due to the character encoding difference between the two apostrophes.
 -- Make sure you are using the correct curly apostrophe ’ (U+2019), not the straight ASCII one '.
 SELECT * FROM AI_models
 WHERE REPLACE(desp, '’', '''') LIKE '%Meta''s%';
