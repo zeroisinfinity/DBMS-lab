@@ -140,6 +140,16 @@ SELECT 'They\'ve responded, "We found this tutorial helpful"';
 
 -- Complex example combining both escapes:
 SELECT 'Code said: "That''s not what she meant," he explained';
+``` 
+
+My code  
+
+```sql
+-- SELECT "test", "'test'", "''test''", "te""st";
+SELECT 'test', '"test"', '""test""', 'te''st';
+-- SELECT "They've found this tutorial to be helpful";
+SELECT 'They\'ve found this tutorial to be helpful';
+SELECT 'They\'ve responded, "We found this tutorial helpful"'; --  a string containing this ' will recognize the backslash as an instruction to cancel out the single quote’s syntactical meaning and instead insert it into the string as an apostrophe.
 ```
 
 ### Why Doubling Works
@@ -168,6 +178,16 @@ This ensures that the embedded single quote is interpreted correctly as part of 
 
 
 You're working with MySQL here, and it's absolutely crucial to understand the difference between **straight ASCII apostrophes (`'`, U+0027)** and **curly (typographic) apostrophes (`’`, U+2019)**—especially when performing queries like `LIKE`. They are **not the same** in MySQL, so `'Meta's%'` won’t match text containing `’` unless you correctly normalize your data or query.
+
+```sql
+SELECT HEX(desp), desp FROM AI_models where ai_id in (359,364); -- BINARY LEVEL INSPECTION
+-- Your MySQL `LIKE` query failed because it searched for a straight ASCII apostrophe (`'`), but the actual data in the `desp` column uses a Unicode curly apostrophe (`’`), so the pattern didn't match—`'Meta's%'` ≠ `'Meta’s%'` due to the character encoding difference between the two apostrophes.
+-- Make sure you are using the correct curly apostrophe ’ (U+2019), not the straight ASCII one '.
+SELECT * FROM AI_models
+WHERE REPLACE(desp, '’', '''') LIKE '%Meta''s%';
+SELECT * FROM AI_models
+WHERE REPLACE(desp, '’', '''') LIKE '%Meta\'s%';
+```
 
 ---
 
