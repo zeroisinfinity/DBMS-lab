@@ -193,8 +193,6 @@ SELECT * FROM AI_models
 WHERE REPLACE(desp, '’', '''') LIKE '%Meta\'s%';
 ```
 
----
-
 ### Why This Matters
 
 Certain editors or copy–paste actions (from Word, for example) introduce curly apostrophes. If your database stores `desp` values with `’`, but your query uses `'`, like patterns won't match because the characters differ at the byte level.
