@@ -159,6 +159,7 @@ UPDATE NumericReachTest set test = ID-500 where ID between 501 and 510;
 select * from NumericReachTest;
 
 create synonym numr for dbo.NumericReachTest;
+EXEC sp_rename 'NumericReachTest', 'numrr';
 
 -- Add new column
 ALTER TABLE NumericReachTest
@@ -176,3 +177,10 @@ WHERE ID > 507;
 
 -- Select records where nill IS NULL
 SELECT * FROM numr WHERE nill IS NOT NULL;
+
+-- datalength change ----------------------------------------------------------------------------------------------------------------------------------------------
+exec sp_help 'numrr';
+-- lets change namet to varchar(200)
+alter table numrr
+    alter column region varchar(200);
+

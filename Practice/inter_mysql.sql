@@ -210,6 +210,28 @@ where ai_id > 357;
 
 select * from AI_models where nill is null;
 
+-- datalength change ----------------------------------------------------------------------------------------------------------------------------------------------
+desc AI_models;
+-- lets change namet to varchar(200)
+alter table AI_models
+    modify name varchar(200);
+desc AI_models;
+
+-- SQL FUCNTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
+
+select * from test_int;
+
+update test_int
+set days = ageid*365
+where id >= 34;
+
+select max(id) - (33-10) as no_of_ppl ,
+       sum(active) as total_active ,
+       max(ageid) - min(ageid) - avg(ageid) as deviation,
+       max(ageid) as oldest ,min(rankk) as first ,
+       avg(days) as avgdays from test_int;
+
+
 
 
 

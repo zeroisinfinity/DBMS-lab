@@ -89,6 +89,35 @@ select * from NumericReachTest;
 
 
 alter table NumericReachTest rename to numr;
+select * from information_schema.tables where table_schema = 'public';
+ 
+
+-- null -------------------------------------------------------------------------------------------------------------------------
+
+-- Add new column
+ALTER TABLE numr
+ADD nill INT;
+
+-- Update nill to NULL for id between 351 and 357
+UPDATE numr
+SET nill = NULL
+WHERE ID BETWEEN 1 AND 7;
+
+-- Update nill to 77 for id > 357
+UPDATE numr
+SET nill = 77
+WHERE id > 7;
+
+-- Select records where nill IS NULL
+SELECT * FROM numr WHERE nill is not NULL;
+
+
+-- datalength change ----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+-- lets change namet to varchar(200)
+alter table numr
+    alter column region type varchar(200);
 
 
 
