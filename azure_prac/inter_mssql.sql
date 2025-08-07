@@ -111,3 +111,68 @@ select * from test_float;
 SELECT 'test', '"test"', '""test""', 'te''st';
 SELECT 'They''ve found this tutorial to be helpful';
 SELECT 'They''ve responded, "We found this tutorial helpful"';
+
+-- temporary cols----------------------------------------------------------------------------------------------------------------------------------------------------
+CREATE TABLE NumericReachTest (
+    ID INT PRIMARY KEY,
+    Region VARCHAR(50),
+    SignalStrength DECIMAL(5,2),
+    ReachInKM DECIMAL(6,2),
+    PopulationCovered BIGINT,
+    NoiseLevel DECIMAL(3,2),
+    QualityScore DECIMAL(5,2),
+    CostEstimate DECIMAL(10,2)
+);
+INSERT INTO NumericReachTest VALUES
+(1, 'North', 87.5, 120.3, 500000, 0.2, 89.6, 12500.00),
+(2, 'South', 65.4, 89.6, 300000, 0.8, 78.3, 9800.00),
+(3, 'East', 90.0, 140.7, 700000, 0.1, 92.5, 15000.50),
+(4, 'West', 55.8, 45.2, 120000, 1.2, 60.9, 5600.00),
+(5, 'Central', 75.1, 100.0, 400000, 0.5, 85.0, 11200.25),
+(6, 'Northwest', 42.3, 32.6, 80000, 1.5, 52.0, 4200.75),
+(7, 'Southeast', 93.4, 160.2, 900000, 0.1, 95.0, 16700.00),
+(8, 'Northeast', 88.2, 110.5, 600000, 0.3, 88.7, 13000.00),
+(9, 'Southwest', 60.9, 78.9, 250000, 0.9, 70.4, 8700.00),
+(10, 'Midlands', 70.0, 95.0, 350000, 0.4, 82.1, 10400.00);
+
+select * from NumericReachTest;
+select  ID*10 as id from NumericReachTest; -- option 1 mysql type 
+select id = ID*10 from NumericReachTest; -- option 2 mssql/azure(t-sql) type
+alter table NumericReachTest
+    alter column id int;
+select id from NumericReachTest;
+
+DECLARE @k INT = 1;
+while @k <= 10
+    begin 
+        UPDATE NumericReachTest set id = ID+500 where ID = @k;
+        set @k = @k + 1;
+    end;
+select * from NumericReachTest;
+
+alter table NumericReachTest
+    add test int;
+select test from NumericReachTest;
+
+
+UPDATE NumericReachTest set test = ID-500 where ID between 501 and 510;
+select * from NumericReachTest;
+
+create synonym numr for dbo.NumericReachTest;
+
+-- Add new column
+ALTER TABLE NumericReachTest
+add nill INT;
+
+-- Update nill to NULL for id between 351 and 357
+UPDATE numr
+SET nill = NULL
+WHERE ID BETWEEN 501 AND 507;
+
+-- Update nill to 77 for id > 357
+UPDATE numr
+SET nill = 77
+WHERE ID > 507;
+
+-- Select records where nill IS NULL
+SELECT * FROM numr WHERE nill IS NOT NULL;

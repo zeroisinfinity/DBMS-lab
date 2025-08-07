@@ -166,9 +166,9 @@ select * from AI_models where desp like '%more%';
 select * from AI_models where desp like 'Meta%';
 -- not right way select desp from AI_models where desp like 'Meta's%';
 
-SELECT "test", "'test'", "''test''", "te""st";
+-- SELECT "test", "'test'", "''test''", "te""st";
 SELECT 'test', '"test"', '""test""', 'te''st';
-SELECT "They've found this tutorial to be helpful";
+-- SELECT "They've found this tutorial to be helpful";
 SELECT 'They\'ve found this tutorial to be helpful';
 SELECT 'They\'ve responded, "We found this tutorial helpful"'; --  a string containing this ' will recognize the backslash as an instruction to cancel out the single quote’s syntactical meaning and instead insert it into the string as an apostrophe.
 
@@ -180,4 +180,37 @@ WHERE REPLACE(desp, '’', '''') LIKE '%Meta''s%';
 SELECT * FROM AI_models
 WHERE REPLACE(desp, '’', '''') LIKE '%Meta\'s%';
 select * from AI_models where desp like 'Meta\'s%'; -- not saved
+
+-- temporary col --------------------------------------------------------------------------------------------------------------------------------------
+select ai_id, name , parameters , parameters*1000 as param from AI_models;
+select parameters*1000 as param , ai_id-350 as sr_no , name as AI from AI_models;
+-- OpenAI is estimated to be earning around $23,000 per minute so $33,120,000 per day.
+select (curdate() - release_date)*33120 as dailyK_earning_of_AI from AI_models;
+-- lets say 5 days halt for maintenance so
+select (AI_models.days_since_release - 5)*33120 as finalearnings from AI_models;
+alter table AI_models
+    add dailyK_earning_of_AI int;
+update AI_models
+    set AI_models.dailyK_earning_of_AI = (curdate() - release_date)*33120;
+
+-- null -----------------------------------------------------------------------------------------------------------------------------------------------------------
+select * from AI_models where desp is not null;
+alter table AI_models
+    add column nill int;
+select * from AI_models where nill is not null;
+
+-- insert into AI_models(nill) values (null),(890),(766),(6787);
+UPDATE AI_models
+    set nill = null
+where ai_id between 351 and 357;
+
+UPDATE AI_models
+    set nill = 77
+where ai_id > 357;
+
+select * from AI_models where nill is null;
+
+
+
+
 

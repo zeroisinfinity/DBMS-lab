@@ -140,6 +140,18 @@ SELECT q'[They've responded, "We found this tutorial helpful"]' FROM dual;
 -- Case-insensitive search options
 SELECT * FROM AI_MODELS WHERE UPPER(NAME) LIKE UPPER('%n%');
 -- Or use REGEXP_LIKE for more complex patterns
-SELECT * FROM AI_MODELS WHERE REGEXP_LIKE(NAME, 'n', 'i');
+SELECT * FROM AI_MODELS WHERE REGEXP_LIKE(NAME, 'n', 'i'); '
+
+-- Temporary computed columns
+SELECT ai_id, name, parameters, parameters*1000 AS param FROM AI_models;
+SELECT parameters*1000 AS param, ai_id-350 AS sr_no, name AS AI FROM AI_models;
+
+-- Earnings: use SYSDATE and subtracting dates gives days
+SELECT (SYSDATE - release_date)*33120 AS dailyK_earning_of_AI FROM AI_models;
+SELECT (days_since_release - 5)*33120 AS finalearnings FROM AI_models;
+
+-- Persistent column and update
+ALTER TABLE AI_models ADD (dailyK_earning_of_AI NUMBER);
+UPDATE AI_models SET dailyK_earning_of_AI = (SYSDATE - release_date)*33120;
 
 
