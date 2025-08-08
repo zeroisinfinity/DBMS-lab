@@ -119,7 +119,19 @@ SELECT * FROM numr WHERE nill is not NULL;
 alter table numr
     alter column region type varchar(200);
 
+-- sql aggregate func-----------------------------------------------------------------------------------------
+SELECT
+  MAX(id) - (33 - 10) AS no_of_ppl,
+  SUM(active) AS total_active,
+  MAX(ageid) - MIN(ageid) - AVG(ageid) AS deviation,
+  MAX(ageid) AS oldest,
+  MIN(rankk) AS first,
+  AVG(days) AS avgdays,
+  COUNT(DISTINCT id) AS ppl,
+  COUNT(DISTINCT ageid) AS diff_ageppl
+FROM test_int;
 
+select id from test_int limit 3;
 
 
 

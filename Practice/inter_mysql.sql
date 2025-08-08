@@ -228,9 +228,17 @@ where id >= 34;
 select max(id) - (33-10) as no_of_ppl ,
        sum(active) as total_active ,
        max(ageid) - min(ageid) - avg(ageid) as deviation,
-       max(ageid) as oldest ,min(rankk) as first ,
-       avg(days) as avgdays from test_int;
+       max(ageid) as oldest ,
+       min(rankk) as first ,
+       avg(days) as avgdays,
+       count(distinct id) as ppl,
+       count(distinct(ageid)) as diff_ageppl
+       from test_int;
 
+-- select id from test_float top(10); -- mssql
+select id from test_float limit 3; -- MYSQL
+
+-- order clause ---------------------------------------------------------------------------------------------------------------------------------------------
 
 
 

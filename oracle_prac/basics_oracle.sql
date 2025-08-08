@@ -154,4 +154,13 @@ SELECT (days_since_release - 5)*33120 AS finalearnings FROM AI_models;
 ALTER TABLE AI_models ADD (dailyK_earning_of_AI NUMBER);
 UPDATE AI_models SET dailyK_earning_of_AI = (SYSDATE - release_date)*33120;
 
+-- Oracle (12c and later):
+SELECT id
+FROM test_float
+FETCH FIRST 3 ROWS ONLY;
+
+-- Oracle (12c and later):
+SELECT id
+FROM test_float
+FETCH FIRST 3 ROWS ONLY;
 
