@@ -240,6 +240,207 @@ select id from test_float limit 3; -- MYSQL
 
 -- order clause ---------------------------------------------------------------------------------------------------------------------------------------------
 
+-- Table
+CREATE TABLE people (
+                        id INT PRIMARY KEY,
+                        first_name VARCHAR(100) NOT NULL,
+                        last_name VARCHAR(100) NOT NULL,
+                        age INT NULL,
+                        price DECIMAL(10,2) NULL,
+                        quantity INT NULL,
+                        status VARCHAR(20) NULL,
+                        category VARCHAR(20) NULL,
+                        created_at DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data (22 rows)
+INSERT INTO people (id, first_name, last_name, age, price, quantity, status, category, created_at) VALUES
+                                                                                                       (1,'Alice','Zimmer',30,19.99,2,'normal','A','2024-01-01 09:00:00'),
+                                                                                                       (2,'alice','zimmer',22,19.99,5,'high','A','2024-01-02 10:00:00'),
+                                                                                                       (3,'Álvaro','Núñez',35,5.00,20,'urgent','B','2024-01-03 11:00:00'),
+                                                                                                       (4,'Bob','Anderson',40,NULL,NULL,NULL,'B','2024-01-04 12:00:00'),
+                                                                                                       (5,'BOB','anderson',NULL,29.95,1,'normal','B','2024-01-05 13:00:00'),
+                                                                                                       (6,'Chloé','Brontë',28,10.00,10,'high','C','2024-01-06 14:00:00'),
+                                                                                                       (7,'Chloe','Bronte',28,10.00,10,'urgent','C','2024-01-07 15:00:00'),
+                                                                                                       (8,'Dmitri','Ivanov',31,100.00,0,'normal','C','2024-01-08 16:00:00'),
+                                                                                                       (9,'Émile','Zola',52,1.00,100,'high','D','2024-01-09 17:00:00'),
+                                                                                                       (10,'Emile','Zola',52,1.00,90,'normal','D','2024-01-10 18:00:00'),
+                                                                                                       (11,'Fatima','al-Zahra',26,7.77,13,'urgent','D','2024-01-11 19:00:00'),
+                                                                                                       (12,'George','O’Malley',33,15.50,3,NULL,'E','2024-01-12 20:00:00'),
+                                                                                                       (13,'Hélène','D’Arcy',NULL,50.00,2,'high','E','2024-01-13 21:00:00'),
+                                                                                                       (14,'Helene','DArcy',29,50.00,2,'normal','E','2024-01-14 22:00:00'),
+                                                                                                       (15,'Ivan','Petrov',41,99.99,1,'urgent','F','2024-01-15 23:00:00'),
+                                                                                                       (16,'Ivy','petrov',41,0.00,100,'normal','F','2024-01-16 09:00:00'),
+                                                                                                       (17,'José','García',34,12.34,4,'high','F','2024-01-17 09:30:00'),
+                                                                                                       (18,'Jose','Garcia',34,12.34,4,NULL,'G','2024-01-18 10:00:00'),
+                                                                                                       (19,'Lars','Ångström',NULL,8.88,11,'normal','G','2024-01-19 11:00:00'),
+                                                                                                       (20,'Márta','Németh',25,3.33,NULL,'urgent','G','2024-01-20 12:00:00'),
+                                                                                                       (21,'Marta','Nemeth',25,3.33,1,'high','H','2024-01-21 13:00:00'),
+                                                                                                       (22,'Zoë','Quinn',19,200.00,1,'normal','H','2024-01-22 14:00:00');
+
+
+select * from people;
+INSERT INTO people (id, first_name, last_name, age, price, quantity, status, category, created_at) VALUES
+                                                                                                       (1001,'Alice','Zimmer',NULL,25.00, NULL,'high','B','2024-02-01 09:00:00'),
+                                                                                                       (1002,'alice','zimmer',27, NULL, 3, NULL, 'C','2024-02-02 10:10:00'),
+                                                                                                       (1003,'Álvaro','Núñez',NULL,7.50, 5, 'normal','A','2024-02-03 11:20:00'),
+                                                                                                       (1004,'Bob','Anderson',38, 12.00, NULL,'urgent','C','2024-02-04 12:30:00'),
+                                                                                                       (1005,'BOB','anderson',42, NULL, 2, 'high', 'D','2024-02-05 13:40:00'),
+                                                                                                       (1006,'Chloé','Brontë',NULL, 9.99, 1, 'normal','E','2024-02-06 14:50:00'),
+                                                                                                       (1007,'Chloe','Bronte',31, NULL, NULL,'high', 'E','2024-02-07 15:55:00'),
+                                                                                                       (1008,'Dmitri','Ivanov',NULL,120.00,2, NULL, 'F','2024-02-08 16:05:00'),
+                                                                                                       (1009,'Émile','Zola', 50, NULL, 80, 'urgent','A','2024-02-09 17:15:00'),
+                                                                                                       (1010,'Emile','Zola', NULL, 2.00, NULL,'high', 'B','2024-02-10 18:25:00'),
+                                                                                                       (1011,'Fatima','al-Zahra',NULL,6.66, 10, 'normal','G','2024-02-11 19:35:00'),
+                                                                                                       (1012,'George','O’Malley',35, NULL, 4, 'urgent','H','2024-02-12 20:45:00'),
+                                                                                                       (1013,'Hélène','D’Arcy',27, NULL, NULL,'normal','A','2024-02-13 21:55:00'),
+                                                                                                       (1014,'Helene','DArcy', NULL, 55.00, 3, NULL, 'C','2024-02-14 22:05:00'),
+                                                                                                       (1015,'Ivan','Petrov', 39, NULL, 2, 'high', 'D','2024-02-15 23:15:00'),
+                                                                                                       (1016,'Ivy','petrov', NULL, 1.00, NULL,'urgent','E','2024-02-16 09:05:00'),
+                                                                                                       (1017,'José','García', NULL, 14.00, 6, NULL, 'F','2024-02-17 09:35:00'),
+                                                                                                       (1018,'Jose','Garcia', 36, NULL, 5, 'normal','G','2024-02-18 10:10:00'),
+                                                                                                       (1019,'Lars','Ångström',35, 9.99, NULL,'high', 'H','2024-02-19 11:20:00'),
+                                                                                                       (1020,'Márta','Németh', NULL, NULL, 2, 'normal','A','2024-02-20 12:30:00'),
+                                                                                                       (1021,'Marta','Nemeth', 26, 4.44, NULL,'urgent','B','2024-02-21 13:40:00'),
+                                                                                                       (1022,'Zoë','Quinn', NULL, 150.00,2, NULL, 'C','2024-02-22 14:50:00');
+select * from people;
+
+create index sort_indx on people(price, first_name , last_name , quantity); -- basic for sorting in mysql
+
+select price,quantity,first_name from people order by price;
+select people.first_name,people.last_name , price from people order by last_name ,price desc; -- case insent & accent insent
+select people.last_name, people.first_name from people order by last_name , first_name desc;
+
+SELECT first_name, last_name, age, price, quantity, status, category, created_at
+FROM people
+WHERE last_name IN ('Anderson','anderson')
+ORDER BY last_name, first_name DESC;
+
+SELECT first_name, last_name, age, price, quantity, status, category, created_at
+FROM people
+WHERE last_name IN ('Anderson','anderson')
+ORDER BY last_name; -- SAME AS ABOVE
+
+-- case insent & accent insent so price becomes sole sorting identity
+-- How to keep the “name grouping” stable and still sort by price
+-- Add a stable, final tiebreaker (id). This makes results deterministic:
+-- ORDER BY last_name DESC, first_name DESC, price DESC, id ASC
+select first_name , last_name , price , id from people order by 2 desc ;
+select first_name , last_name , price , id from people order by 2 desc ,  1 desc ;
+select first_name , last_name , price , id from people order by 2 desc ,  1 desc , 3 desc ;
+select first_name , last_name , price , id from people order by 2 desc ,  1 desc , 3 desc , 4 ;
+select first_name , last_name , price , id from people order by 2 desc ,  1 desc , 3 desc , 4 desc;
+
+
+select price*quantity as total_cost , first_name , last_name , price , id from people order by total_cost desc;
+select first_name , last_name , price , id from people order by price*quantity desc;
+
+
+select price , quantity from people order by quantity is null , quantity desc;
+select price , quantity from people order by people.quantity is null desc , quantity desc;
+
+/* You’re using boolean expressions in ORDER BY to control where NULLs go. In SQL Server:
+
+The expression quantity IS NULL returns 1 (true) when quantity is NULL, and 0 (false) otherwise.
+
+When you sort ASC (the default), 0 comes before 1. When you sort DESC, 1 comes before 0.
+
+So:
+
+select price, quantity from people order by quantity is null, quantity desc;
+
+Interpreted as:
+
+ORDER BY (quantity IS NULL) ASC, quantity DESC */
+
+show collation ;
+select people.first_name from people order by people.first_name;
+select people.first_name from people order by people.first_name collate utf8mb4_general_ci;
+
+
+SHOW VARIABLES LIKE 'collation_server';
+SHOW VARIABLES LIKE 'character_set_server';
+
+select people.first_name from people order by people.first_name collate utf8mb4_bin;
+
+select * from
+             ( select price , first_name from people
+               order by price is null ,
+               price desc limit 6)
+as top_prod order by first_name;
+
+SELECT id, first_name
+FROM people
+ORDER BY first_name desc
+LIMIT 10 OFFSET 5;
+
+SELECT id, first_name
+FROM people
+ORDER BY first_name desc
+LIMIT 20;
+
+/* KEYSET PAGINATION IF OFFSET >> 100
+2. Keyset Pagination (Seek Method)
+SELECT id, name
+FROM products
+WHERE name > 'Zebra-1000000'  -- last name from previous page
+ORDER BY name ASC
+LIMIT 10; */
+
+
+select * from people order by rand();
+
+select first_name , last_name ,status from people
+    order by case status
+    when 'urgent' then 1
+    when 'high' then 2
+    when 'normal' then 3
+    else 4
+end;
+
+select first_name , last_name ,status from people
+order by case 3
+             when 'urgent' then 11
+             when 'high' then 22
+             when 'normal' then 33
+             else 44
+             end ,
+    3 desc;
+
+select people.status,people.first_name,people.last_name
+    from people order by field(status,'urgent','high','normal'); -- null first
+
+
+select people.status,people.first_name,people.last_name
+from people order by field(status,'urgent','high','normal') = 0, -- WORKS
+                     field(status,'urgent','high','normal');
+
+select people.status,people.first_name,people.last_name
+from people order by field(status,'urgent','high','normal') is not null,
+                     field(status,'urgent','high','normal'); -- every value is either 0,1,2,3 so no nulls so no use
+
+select people.status,people.first_name,people.last_name
+from people order by field(status,'urgent','high','normal') is not null,-- every value is either 0,1,2,3 so no nulls so no use
+                     field(status,'urgent','high','normal');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
