@@ -424,21 +424,292 @@ from people order by field(status,'urgent','high','normal') is not null,-- every
                      field(status,'urgent','high','normal');
 
 
+-- group by ---------------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE employees (
+                           employee_id INT AUTO_INCREMENT PRIMARY KEY,
+                           first_name VARCHAR(50),
+                           last_name VARCHAR(50),
+                           department VARCHAR(50),
+                           role VARCHAR(50),
+                           location VARCHAR(50),
+                           salary DECIMAL(10,2),
+                           hire_date DATE
+);
+
+INSERT INTO employees (first_name, last_name, department, role, location, salary, hire_date) VALUES
+                                                                                                 ('Alice', 'Johnson', 'Sales', 'Manager', 'New York', 90000.00, '2018-05-20'),
+                                                                                                 ('Bob', 'Smith', 'Sales', 'Executive', 'New York', 60000.00, '2020-03-14'),
+                                                                                                 ('Carol', 'Davis', 'Sales', 'Executive', 'London', 58000.00, '2019-11-03'),
+                                                                                                 ('David', 'Brown', 'Sales', 'Analyst', 'London', 50000.00, '2021-07-12'),
+                                                                                                 ('Eve', 'Miller', 'IT', 'Developer', 'New York', 75000.00, '2017-02-08'),
+                                                                                                 ('Frank', 'Wilson', 'IT', 'Developer', 'London', 72000.00, '2019-09-25'),
+                                                                                                 ('Grace', 'Moore', 'IT', 'Manager', 'New York', 95000.00, '2016-08-18'),
+                                                                                                 ('Hank', 'Taylor', 'IT', 'Analyst', 'London', 68000.00, '2021-01-05'),
+                                                                                                 ('Ivy', 'Anderson', 'HR', 'Manager', 'London', 88000.00, '2015-04-11'),
+                                                                                                 ('Jack', 'Thomas', 'HR', 'Executive', 'New York', 55000.00, '2022-06-30'),
+                                                                                                 ('Karen', 'Jackson', 'HR', 'Analyst', 'London', 53000.00, '2020-08-09'),
+                                                                                                 ('Leo', 'White', 'Finance', 'Manager', 'New York', 98000.00, '2017-10-02'),
+                                                                                                 ('Mia', 'Harris', 'Finance', 'Executive', 'London', 64000.00, '2019-12-17'),
+                                                                                                 ('Nina', 'Martin', 'Finance', 'Analyst', 'New York', 62000.00, '2021-04-20'),
+                                                                                                 ('Oscar', 'Garcia', 'Finance', 'Analyst', 'London', 61000.00, '2022-01-15'),
+                                                                                                 ('Paul', 'Martinez', 'IT', 'Developer', 'New York', 78000.00, '2018-09-27'),
+                                                                                                 ('Quinn', 'Robinson', 'Sales', 'Manager', 'London', 91000.00, '2016-06-06'),
+                                                                                                 ('Ruth', 'Clark', 'Sales', 'Executive', 'London', 59000.00, '2020-10-18'),
+                                                                                                 ('Sam', 'Rodriguez', 'Finance', 'Executive', 'New York', 65000.00, '2019-07-13'),
+                                                                                                 ('Tina', 'Lewis', 'HR', 'Executive', 'London', 54000.00, '2021-11-04'),
+                                                                                                 ('Uma', 'Lee', 'Finance', 'Manager', 'London', 97000.00, '2015-12-29'),
+                                                                                                 ('Victor', 'Walker', 'IT', 'Analyst', 'New York', 70000.00, '2019-01-21'),
+                                                                                                 ('Wendy', 'Hall', 'Sales', 'Analyst', 'New York', 52000.00, '2020-09-10'),
+                                                                                                 ('Xavier', 'Allen', 'IT', 'Developer', 'London', 76000.00, '2021-06-19'),
+                                                                                                 ('Yara', 'Young', 'Finance', 'Executive', 'New York', 66000.00, '2018-03-15'),
+                                                                                                 ('Zane', 'King', 'HR', 'Analyst', 'New York', 51000.00, '2022-04-25'),
+                                                                                                 ('Adam', 'Scott', 'Finance', 'Manager', 'New York', 99000.00, '2016-07-22'),
+                                                                                                 ('Bella', 'Green', 'IT', 'Manager', 'London', 94000.00, '2017-05-11'),
+                                                                                                 ('Chris', 'Adams', 'Sales', 'Executive', 'New York', 61000.00, '2019-02-28');
+
+INSERT INTO employees (first_name, last_name, department, role, location, salary, hire_date) VALUES
+-- Seattle
+('Alice', 'Ford', 'Engineering', 'Developer', 'Seattle', 78000.00, '2021-03-15'),
+('Brian', 'Chase', 'Engineering', 'Developer', 'Seattle', 81000.00, '2020-07-21'),
+('Cindy', 'Liu', 'Engineering', 'Manager', 'Seattle', 95000.00, '2019-11-04'),
+('David', 'Kim', 'Marketing', 'Specialist', 'Seattle', 62000.00, '2022-05-18'),
+
+-- Miami
+('Evelyn', 'Ross', 'Engineering', 'Developer', 'Miami', 72000.00, '2021-08-09'),
+('Frank', 'Hall', 'Engineering', 'QA Engineer', 'Miami', 65000.00, '2020-12-02'),
+('Grace', 'Patel', 'HR', 'Recruiter', 'Miami', 59000.00, '2023-01-10'),
+('Henry', 'Adams', 'Finance', 'Analyst', 'Miami', 69000.00, '2020-04-25'),
+
+-- Austin
+('Isabel', 'Grant', 'Finance', 'Analyst', 'Austin', 71000.00, '2019-06-17'),
+('Jack', 'Ward', 'Finance', 'Manager', 'Austin', 95000.00, '2021-02-28'),
+('Karen', 'Webb', 'Engineering', 'Developer', 'Austin', 78000.00, '2022-09-14'),
+('Leo', 'Turner', 'Marketing', 'Specialist', 'Austin', 63000.00, '2023-04-07'),
+
+-- Boston
+('Mia', 'Scott', 'Marketing', 'Manager', 'Boston', 87000.00, '2018-10-12'),
+('Nathan', 'Brooks', 'Engineering', 'Developer', 'Boston', 75000.00, '2020-06-19'),
+('Olivia', 'Price', 'Engineering', 'QA Engineer', 'Boston', 64000.00, '2021-12-05'),
+('Peter', 'Long', 'HR', 'Manager', 'Boston', 85000.00, '2019-03-30'),
+
+-- Denver
+('Quincy', 'James', 'Engineering', 'Developer', 'Denver', 77000.00, '2021-05-22'),
+('Rachel', 'West', 'Finance', 'Analyst', 'Denver', 70000.00, '2022-08-15'),
+('Samuel', 'Clark', 'Finance', 'Manager', 'Denver', 94000.00, '2020-01-09'),
+('Tina', 'Edwards', 'Marketing', 'Specialist', 'Denver', 65000.00, '2023-06-03'),
+
+-- Chicago
+('Uma', 'Khan', 'Engineering', 'Developer', 'Chicago', 79000.00, '2020-09-27'),
+('Victor', 'Bell', 'Engineering', 'Manager', 'Chicago', 96000.00, '2019-02-14'),
+('Wendy', 'Young', 'Finance', 'Analyst', 'Chicago', 72000.00, '2021-11-11'),
+('Xavier', 'Ross', 'HR', 'Recruiter', 'Chicago', 60000.00, '2022-07-20');
 
 
+select * from employees;
+
+select employees.department ,
+    count(employees.department) as total_dept
+    from employees
+    group by department;-- all non aggree cols must be group by
+
+select employees.role ,
+    count(employees.role) as total_roles
+    from employees
+GROUP BY role;
+
+select employees.department ,
+       count(employees.department) as total_dept,
+       employees.role ,
+       count(employees.role) as total_roles
+from employees
+group by department , role;-- all non aggree cols must be group by
+
+select department , max(salary)
+    from employees
+    where location in ('London','New York','Chicago','Seattle')
+    group by department
+    having avg(salary) > 60000.00
+    order by department;
+
+SELECT department, role, COUNT(*) AS count_role
+FROM employees
+GROUP BY department, role
+ORDER BY department, role;
+
+select year(employees.hire_date) as joining_year ,
+    count(*) as hire_count
+    from employees
+    group by joining_year
+    order by joining_year;
+
+SELECT department, role, COUNT(*) AS count_role
+FROM employees
+GROUP BY department, role
+ORDER BY department, role;
+
+select employees.department , employees.role , sum(employees.salary) as salarypool
+    from employees
+    group by department , role with rollup ;
+
+select sum(salarypool) as salarypool
+    from (SELECT department, role, sum(salary) AS salarypool
+    FROM employees
+    GROUP BY department, role
+    ORDER BY department) as role_salary
+group by department; -- no compplete grand total
+
+-- Simulating GROUPING SETS in MySQL
+SELECT department, role, SUM(salary) AS salarypool
+FROM employees
+GROUP BY department, role
+
+UNION ALL
+
+SELECT department, NULL AS roles, SUM(salary) AS salarypool
+FROM employees
+GROUP BY department
+
+UNION ALL
+
+SELECT NULL AS department, NULL AS roles, SUM(salary) AS salarypool
+FROM employees;
 
 
+/*select employees.department , role , sum(employees.salary) as salarypool
+    from employees
+    group by grouping sets(
+    (department , role),
+    (department),
+    ()
+    );*/ -- no grouping sets
 
+/*select employees.department , employees.role
+    from employees
+    group by cube (department , role);*/ -- no cube
 
+/*
+ Alright — let’s break down exactly how
 
+```sql
+SELECT department, role, SUM(salary) AS salarypool
+FROM employees
+GROUP BY GROUPING SETS (
+    (department, role),
+    (department),
+    ()
+);
+```
 
+works, step-by-step.
 
+---
 
+## **1️⃣ GROUPING SETS — what’s the idea?**
 
+Normally in SQL:
 
+```sql
+GROUP BY department, role
+```
 
+gives **one fixed grouping** — you get sums per `(department, role)` pair only.
 
+**`GROUPING SETS`** says:
 
+> "I want **multiple** groupings in one query — and union them into a single result set."
+
+Here, we have **three grouping sets**:
+
+1. `(department, role)` → detailed breakdown
+2. `(department)` → subtotal per department (role ignored)
+3. `()` → grand total (all rows together)
+
+---
+
+## **2️⃣ Step-by-step execution flow**
+
+Let’s imagine a small table:
+
+| department | role      | salary |
+| ---------- | --------- | ------ |
+| Sales      | Manager   | 5000   |
+| Sales      | Executive | 3000   |
+| HR         | Manager   | 4000   |
+| HR         | Clerk     | 2000   |
+
+---
+
+### **Step A — First grouping set `(department, role)`**
+
+SQL engine groups **by both columns**:
+
+```
+Sales, Manager   → 5000
+Sales, Executive → 3000
+HR, Manager      → 4000
+HR, Clerk        → 2000
+```
+
+---
+
+### **Step B — Second grouping set `(department)`**
+
+Now SQL engine ignores `role` and groups only by `department`:
+
+```
+Sales → 5000 + 3000 = 8000
+HR    → 4000 + 2000 = 6000
+```
+
+---
+
+### **Step C — Third grouping set `()`**
+
+No columns → **all rows together**:
+
+```
+Grand total → 5000 + 3000 + 4000 + 2000 = 14000
+```
+
+---
+
+### **Step D — Combine results**
+
+SQL **UNION ALL**-style merges all rows into one result:
+
+| department | role      | salarypool |               |
+| ---------- | --------- | ---------- | ------------- |
+| Sales      | Manager   | 5000       |               |
+| Sales      | Executive | 3000       |               |
+| HR         | Manager   | 4000       |               |
+| HR         | Clerk     | 2000       |               |
+| Sales      | NULL      | 8000       | ← subtotal    |
+| HR         | NULL      | 6000       | ← subtotal    |
+| NULL       | NULL      | 14000      | ← grand total |
+
+---
+
+## **3️⃣ How NULLs appear**
+
+* When a column is **not in the current grouping set**, its value is `NULL` in the output.
+* These NULLs aren’t “real data NULLs” — they mean *“this column is aggregated over all values”*.
+
+---
+
+## **4️⃣ Why it’s useful**
+
+Without `GROUPING SETS`, you’d have to run **three separate queries** (detailed, subtotal, total) and `UNION` them manually. This does all in **one scan** of the table — much faster.
+
+---
+
+If you want, I can **draw you a visual flowchart** showing how SQL runs each grouping set and merges the results — that’s the clearest way to “see” it happen.
+Do you want me to make that?
+
+ */
+-- DISTINCT VS GROUP BY
+SELECT count(DISTINCT employees.department) as distict_dept FROM employees;
+select sum(dept) as dept from (select count(*) as dept from employees group by employees.department) as total_dept ;
 
 
 
