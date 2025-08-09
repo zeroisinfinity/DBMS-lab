@@ -731,3 +731,196 @@ select p.product_id , o.order_id , e.emp_id
     from products p
     right join orders o on o.product_id = p.product_id
     left join emp e on o.employee_id = e.emp_id;
+
+-- ranks -------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Oracle
+CREATE TABLE sales_data (
+    sale_id NUMBER PRIMARY KEY,
+    sale_date DATE NOT NULL,
+    salesperson_id NUMBER,
+    product_category VARCHAR2(50),
+    sale_amount NUMBER(10,2) NOT NULL,
+    quantity_sold NUMBER,
+    region VARCHAR2(50)
+);
+
+CREATE SEQUENCE sales_data_seq START WITH 1 INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER sales_data_trigger
+BEFORE INSERT ON sales_data
+FOR EACH ROW
+BEGIN
+    SELECT sales_data_seq.NEXTVAL INTO :new.sale_id FROM dual;
+END;
+/
+
+CREATE TABLE student_grades (
+    student_id NUMBER PRIMARY KEY,
+    student_name VARCHAR2(100) NOT NULL,
+    subject VARCHAR2(50) NOT NULL,
+    grade NUMBER(5,2) NOT NULL,
+    exam_date DATE NOT NULL,
+    semester VARCHAR2(20),
+    credit_hours NUMBER
+);
+
+INSERT ALL
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-15', 'YYYY-MM-DD'), 1, 'Electronics', 25000.00, 50, 'North')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-16', 'YYYY-MM-DD'), 2, 'Clothing', 18000.00, 120, 'South')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-17', 'YYYY-MM-DD'), 3, 'Electronics', 32000.00, 40, 'East')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-18', 'YYYY-MM-DD'), 1, 'Books', 8000.00, 200, 'North')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-19', 'YYYY-MM-DD'), 4, 'Electronics', 45000.00, 75, 'West')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-20', 'YYYY-MM-DD'), 2, 'Clothing', 22000.00, 80, 'South')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-21', 'YYYY-MM-DD'), 5, 'Books', 12000.00, 150, 'East')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-22', 'YYYY-MM-DD'), 3, 'Electronics', 38000.00, 60, 'East')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-23', 'YYYY-MM-DD'), 1, 'Clothing', 16000.00, 90, 'North')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-24', 'YYYY-MM-DD'), 6, 'Books', 9000.00, 180, 'West')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-25', 'YYYY-MM-DD'), 4, 'Electronics', 41000.00, 65, 'West')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-26', 'YYYY-MM-DD'), 2, 'Clothing', 24000.00, 100, 'South')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-27', 'YYYY-MM-DD'), 5, 'Books', 11000.00, 220, 'East')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-28', 'YYYY-MM-DD'), 7, 'Electronics', 29000.00, 45, 'North')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-29', 'YYYY-MM-DD'), 3, 'Clothing', 19000.00, 75, 'East')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-30', 'YYYY-MM-DD'), 6, 'Books', 13000.00, 160, 'West')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-01-31', 'YYYY-MM-DD'), 1, 'Electronics', 35000.00, 55, 'North')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-02-01', 'YYYY-MM-DD'), 4, 'Clothing', 21000.00, 85, 'West')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-02-02', 'YYYY-MM-DD'), 7, 'Books', 10000.00, 190, 'North')
+    INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES (TO_DATE('2024-02-03', 'YYYY-MM-DD'), 2, 'Electronics', 39000.00, 70, 'South')
+SELECT 1 FROM DUAL;
+
+INSERT ALL
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (1, 'Emma Wilson', 'Mathematics', 92.5, TO_DATE('2024-05-15', 'YYYY-MM-DD'), 'Spring 2024', 3)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (2, 'Liam Chen', 'Mathematics', 88.0, TO_DATE('2024-05-15', 'YYYY-MM-DD'), 'Spring 2024', 3)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (3, 'Sophie Rodriguez', 'Physics', 95.0, TO_DATE('2024-05-20', 'YYYY-MM-DD'), 'Spring 2024', 4)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (4, 'Mason Kim', 'Chemistry', 87.5, TO_DATE('2024-05-18', 'YYYY-MM-DD'), 'Spring 2024', 3)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (5, 'Ava Patel', 'Mathematics', 91.0, TO_DATE('2024-05-15', 'YYYY-MM-DD'), 'Spring 2024', 3)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (6, 'Noah Johnson', 'Physics', 89.5, TO_DATE('2024-05-20', 'YYYY-MM-DD'), 'Spring 2024', 4)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (7, 'Isabella Brown', 'Chemistry', 93.0, TO_DATE('2024-05-18', 'YYYY-MM-DD'), 'Spring 2024', 3)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (8, 'Ethan Davis', 'Mathematics', 85.5, TO_DATE('2024-05-15', 'YYYY-MM-DD'), 'Spring 2024', 3)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (9, 'Mia Garcia', 'Physics', 90.0, TO_DATE('2024-05-20', 'YYYY-MM-DD'), 'Spring 2024', 4)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (10, 'James Martinez', 'Biology', 88.5, TO_DATE('2024-05-22', 'YYYY-MM-DD'), 'Spring 2024', 4)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (11, 'Charlotte Lee', 'Chemistry', 94.5, TO_DATE('2024-05-18', 'YYYY-MM-DD'), 'Spring 2024', 3)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (12, 'Benjamin Taylor', 'Mathematics', 86.0, TO_DATE('2024-05-15', 'YYYY-MM-DD'), 'Spring 2024', 3)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (13, 'Amelia Anderson', 'Biology', 92.0, TO_DATE('2024-05-22', 'YYYY-MM-DD'), 'Spring 2024', 4)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (14, 'Lucas Thompson', 'Physics', 87.0, TO_DATE('2024-05-20', 'YYYY-MM-DD'), 'Spring 2024', 4)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (15, 'Harper White', 'Chemistry', 90.5, TO_DATE('2024-05-18', 'YYYY-MM-DD'), 'Spring 2024', 3)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (16, 'Alexander Harris', 'Biology', 89.0, TO_DATE('2024-05-22', 'YYYY-MM-DD'), 'Spring 2024', 4)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (17, 'Evelyn Clark', 'Mathematics', 93.5, TO_DATE('2024-05-15', 'YYYY-MM-DD'), 'Spring 2024', 3)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (18, 'Michael Lewis', 'Physics', 91.5, TO_DATE('2024-05-20', 'YYYY-MM-DD'), 'Spring 2024', 4)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (19, 'Abigail Walker', 'Biology', 87.5, TO_DATE('2024-05-22', 'YYYY-MM-DD'), 'Spring 2024', 4)
+    INTO student_grades (student_id, student_name, subject, grade, exam_date, semester, credit_hours) VALUES (20, 'William Hall', 'Chemistry', 92.0, TO_DATE('2024-05-18', 'YYYY-MM-DD'), 'Spring 2024', 3)
+SELECT 1 FROM DUAL;
+
+select * from student_grades;
+select * from sales_data;
+
+select product_category , quantity_sold , sale_amount , row_number()
+        over (order by quantity_sold desc) as sr_no from sales_data;
+
+select  student_name, subject , grade , rank()
+        over (order by grade desc) as sr_no from student_grades;
+
+
+select  student_name, subject , grade , rank()
+        over (partition by subject order by grade desc) as sr_no from student_grades;
+
+select student_name , grade , subject,
+    row_number() over (partition by subject order by grade desc,student_name) as sr_no,
+    rank() over (partition by subject order by grade desc,student_name) as rankk,
+    dense_rank() over (partition by subject order by grade desc,student_name) as dense
+from student_grades;
+
+with cte as (
+    select name ,
+           salary ,
+           dept_id ,
+           row_number() over (partition by dept_id order by salary desc) as dept_top3
+    from emp
+) select dept_id , name , salary from cte where dept_top3 <= 2;
+
+select customer_id,total_amount from orders;
+
+select customer_id , sum(total_amount) revenue,
+       ntile(1) over (order by sum(total_amount) desc) as revenue_decile
+from orders
+group by customer_id
+order by revenue desc;
+
+select customer_id , sum(total_amount) revenue,
+       ntile(2) over (order by sum(total_amount) desc) as revenue_decile
+from orders
+group by customer_id
+order by revenue desc;
+
+select customer_id , sum(total_amount) revenue,
+       ntile(3) over (order by sum(total_amount) desc) as revenue_decile
+from orders
+group by customer_id
+order by revenue desc;
+
+select customer_id , sum(total_amount) revenue,
+       ntile(7) over (order by sum(total_amount) desc) as revenue_decile
+from orders
+group by customer_id
+order by revenue desc;
+
+select customer_id , sum(total_amount) revenue,
+       ntile(199) over (order by sum(total_amount) desc) as revenue_decile
+from orders
+group by customer_id
+order by revenue desc;
+
+select student_name , grade , subject,
+       row_number() over (partition by subject order by grade desc) as sr_no,
+       rank() over (partition by subject order by grade desc) as rankk,
+       dense_rank() over (partition by subject order by grade desc) as dense,
+       percent_rank() over (partition by subject order by grade)*100 as percentile,
+       cume_dist() over (partition by subject order by grade desc) as c_dist
+from student_grades
+order by subject,sr_no;
+
+-- partition by , window func-----------------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE sample_data (
+    id NUMBER,
+    name VARCHAR2(100),
+    category VARCHAR2(50),
+    created_at DATE,
+    amount NUMBER(10,2)
+);
+
+INSERT ALL
+    INTO sample_data (id, name, category, created_at, amount) VALUES (7, 'Golf', 'A', DATE '2024-04-01', 45.00)
+    INTO sample_data (id, name, category, created_at, amount) VALUES (8, 'Hotel', 'B', DATE '2024-04-10', 510.10)
+    INTO sample_data (id, name, category, created_at, amount) VALUES (9, 'India', 'C', DATE '2024-04-22', 180.00)
+    INTO sample_data (id, name, category, created_at, amount) VALUES (10, 'Juliet', 'A', DATE '2024-05-01', 270.30)
+    INTO sample_data (id, name, category, created_at, amount) VALUES (1, 'Alpha', 'A', DATE '2024-01-10', 100.00)
+    INTO sample_data (id, name, category, created_at, amount) VALUES (2, 'Bravo', 'A', DATE '2024-01-11', 150.50)
+    INTO sample_data (id, name, category, created_at, amount) VALUES (3, 'Charlie', 'B', DATE '2024-02-01', 75.25)
+    INTO sample_data (id, name, category, created_at, amount) VALUES (4, 'Delta', 'B', DATE '2024-02-15', 220.00)
+    INTO sample_data (id, name, category, created_at, amount) VALUES (5, 'Echo', 'C', DATE '2024-03-05', 90.00)
+    INTO sample_data (id, name, category, created_at, amount) VALUES (6, 'Foxtrot', 'C', DATE '2024-03-20', 310.75)
+SELECT 1 FROM DUAL;
+
+select * from sample_data order by id;
+
+-- evaluating dup records using partition by -----------------------------------------------------------------------------------------------------------------
+-- - Keep row detail while adding group-level metrics, unlike GROUP BY which collapses rows.
+with cte as (
+    select id , name, category, created_at, amount,
+           row_number() over (partition by id,name,category,created_at,amount) as sr_no
+    from sample_data
+)
+select id, name, category, created_at, amount, sr_no, count(sr_no) as no_of_enteries from cte group by id, name, category, created_at, amount, sr_no order by id;
+
+select id ,
+       row_number() over (partition by id,name,category,created_at,amount) as sr_no
+from sample_data ;
+
+
+with cte as (
+    select id ,
+           row_number() over (partition by id,name,category,created_at,amount) as sr_no
+    from sample_data
+)
+select id , max(sr_no) as total_enteries from cte where cte.sr_no > 1 group by id;

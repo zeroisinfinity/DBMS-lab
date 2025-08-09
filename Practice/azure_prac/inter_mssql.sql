@@ -1365,3 +1365,51 @@ from student_grades
 order by subject,sr_no;
 
 
+-- partition by , window func-----------------------------------------------------------------------------------------------------------------------------
+
+-- Create table (portable types)
+CREATE TABLE sample_data (
+                             id int,
+                             name VARCHAR(100),
+                             category VARCHAR(50),
+                             created_at DATE,
+                             amount DECIMAL(10,2)
+);
+INSERT INTO sample_data (id, name, category, created_at, amount) VALUES
+(7, 'Golf', 'A', '2024-04-01', 45.00),
+(8, 'Hotel', 'B', '2024-04-10', 510.10),
+(9, 'India', 'C', '2024-04-22', 180.00),
+(10, 'Juliet', 'A', '2024-05-01', 270.30),
+(1, 'Alpha', 'A', '2024-01-10', 100.00),
+(2, 'Bravo', 'A', '2024-01-11', 150.50),
+(3, 'Charlie', 'B', '2024-02-01', 75.25),
+(4, 'Delta', 'B', '2024-02-15', 220.00),
+(5, 'Echo', 'C', '2024-03-05', 90.00),
+(6, 'Foxtrot', 'C', '2024-03-20', 310.75);
+
+select * from sample_data order by id;
+
+-- evaluating dup records using partition by -----------------------------------------------------------------------------------------------------------------
+-- - Keep row detail while adding group-level metrics, unlike GROUP BY which collapses rows.
+WITH cte AS (
+    SELECT id,
+           name,
+           category,
+           created_at,
+           amount,
+           ROW_NUMBER() OVER (PARTITION BY id, name, category, created_at, amount order by id) AS sr_no
+    FROM sample_data
+)
+SELECT * FROM cte ORDER BY id, sr_no;
+
+select id ,
+       row_number() over (partition by id,name,category,created_at,amount order by id ) as sr_no
+from sample_data ;
+
+
+with cte as (
+    select id ,
+           row_number() over (partition by id,name,category,created_at,amount  order by id) as sr_no
+    from sample_data
+)
+select id , max(sr_no) as total_enteries from cte where sr_no > 1 group by id;

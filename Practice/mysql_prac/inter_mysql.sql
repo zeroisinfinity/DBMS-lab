@@ -1423,3 +1423,215 @@ select student_grades.student_name , grade , student_grades.subject,
        cume_dist() over (partition by subject order by grade desc) as c_dist
 from student_grades
 order by subject,sr_no;
+
+-- partition by , window func-----------------------------------------------------------------------------------------------------------------------------
+
+-- Create table (portable types)
+CREATE TABLE sample_data (
+                             id int,
+                             name VARCHAR(100),
+                             category VARCHAR(50),
+                             created_at DATE,
+                             amount DECIMAL(10,2)
+);
+
+INSERT INTO sample_data (id, name, category, created_at, amount) VALUES
+                                                                     (7, 'Golf', 'A', DATE '2024-04-01', 45.00),
+                                                                     (8, 'Hotel', 'B', DATE '2024-04-10', 510.10),
+                                                                     (9, 'India', 'C', DATE '2024-04-22', 180.00),
+                                                                     (10, 'Juliet', 'A', DATE '2024-05-01', 270.30),
+                                                                     (1, 'Alpha', 'A', DATE '2024-01-10', 100.00),
+                                                                     (2, 'Bravo', 'A', DATE '2024-01-11', 150.50),
+                                                                     (3, 'Charlie', 'B', DATE '2024-02-01', 75.25),
+                                                                     (4, 'Delta', 'B', DATE '2024-02-15', 220.00),
+                                                                     (5, 'Echo', 'C', DATE '2024-03-05', 90.00),
+                                                                     (6, 'Foxtrot', 'C', DATE '2024-03-20', 310.75);
+
+
+select * from sample_data order by id;
+
+-- evaluating dup records using partition by -----------------------------------------------------------------------------------------------------------------
+-- - Keep row detail while adding group-level metrics, unlike GROUP BY which collapses rows.
+with cte as (
+    select id ,
+           row_number() over (partition by id,name,category,created_at,amount) as sr_no
+    from sample_data
+)
+select * , count(sr_no) as no_of_enteries from cte group by id order by sr_no;
+
+select id ,
+       row_number() over (partition by id,name,category,created_at,amount) as sr_no
+from sample_data ;
+
+
+with cte as (
+    select id ,
+           row_number() over (partition by id,name,category,created_at,amount) as sr_no
+    from sample_data
+)
+select id , max(sr_no) as total_enteries from cte where cte.sr_no > 1 group by id;
+
+/*
+
+
+
+
+-- Query 1: Detect duplicates with row numbers (All databases same)
+WITH cte AS (
+    SELECT id,
+           name,
+           category,
+           created_at,
+           amount,
+           ROW_NUMBER() OVER (PARTITION BY id, name, category, created_at, amount) AS sr_no
+    FROM sample_data
+)
+SELECT * FROM cte ORDER BY id, sr_no;
+
+-- Query 2: Count entries per unique combination
+-- MySQL & PostgreSQL
+WITH cte AS (
+    SELECT id,
+           ROW_NUMBER() OVER (PARTITION BY id, name, category, created_at, amount) AS sr_no
+    FROM sample_data
+)
+SELECT id,
+       COUNT(sr_no) AS no_of_entries
+FROM cte
+GROUP BY id
+ORDER BY id;
+
+-- SQL Server (same as above - works identically)
+
+-- Query 3: Find only duplicate records (simplified version)
+-- All Databases
+WITH cte AS (
+    SELECT id,
+           name,
+           category,
+           created_at,
+           amount,
+           ROW_NUMBER() OVER (PARTITION BY id, name, category, created_at, amount) AS sr_no
+    FROM sample_data
+)
+SELECT id,
+       MAX(sr_no) AS total_entries
+FROM cte
+WHERE sr_no > 1
+GROUP BY id;
+
+-- ==============================================
+-- ENHANCED DUPLICATE DETECTION QUERIES
+-- ==============================================
+
+-- Query 4: Complete duplicate analysis (All databases)
+WITH duplicate_analysis AS (
+    SELECT id,
+           name,
+           category,
+           created_at,
+           amount,
+           ROW_NUMBER() OVER (PARTITION BY id, name, category, created_at, amount) AS row_num,
+           COUNT(*) OVER (PARTITION BY id, name, category, created_at, amount) AS duplicate_count
+    FROM sample_data
+)
+SELECT *,
+       CASE
+           WHEN duplicate_count > 1 THEN 'Duplicate'
+           ELSE 'Unique'
+       END AS duplicate_status
+FROM duplicate_analysis
+ORDER BY id, row_num;
+
+-- Query 5: Category-wise analysis with window functions
+SELECT id,
+       name,
+       category,
+       amount,
+       -- Ranking within category
+       ROW_NUMBER() OVER (PARTITION BY category ORDER BY amount DESC) AS cat_rank,
+       RANK() OVER (PARTITION BY category ORDER BY amount DESC) AS cat_rank_with_ties,
+       DENSE_RANK() OVER (PARTITION BY category ORDER BY amount DESC) AS cat_dense_rank,
+       -- Running totals within category
+       SUM(amount) OVER (PARTITION BY category ORDER BY created_at ROWS UNBOUNDED PRECEDING) AS running_total,
+       -- Average within category
+       AVG(amount) OVER (PARTITION BY category) AS category_avg,
+       -- Compare to category average
+       amount - AVG(amount) OVER (PARTITION BY category) AS diff_from_avg
+FROM sample_data
+ORDER BY category, amount DESC;
+
+-- ==============================================
+-- ADVANCED WINDOW FUNCTION EXAMPLES
+-- ==============================================
+
+-- Query 6: Time-series analysis with LAG/LEAD
+SELECT id,
+       name,
+       category,
+       created_at,
+       amount,
+       -- Previous and next values
+       LAG(amount) OVER (ORDER BY created_at) AS prev_amount,
+       LEAD(amount) OVER (ORDER BY created_at) AS next_amount,
+       -- Difference from previous
+       amount - LAG(amount) OVER (ORDER BY created_at) AS amount_change,
+       -- Moving average (3-row window)
+       AVG(amount) OVER (ORDER BY created_at ROWS 2 PRECEDING) AS moving_avg_3
+FROM sample_data
+ORDER BY created_at;
+
+-- Query 7: Percentile and distribution analysis
+SELECT id,
+       name,
+       category,
+       amount,
+       -- Overall percentiles
+       PERCENT_RANK() OVER (ORDER BY amount) AS overall_percentile,
+       CUME_DIST() OVER (ORDER BY amount) AS cumulative_distribution,
+       NTILE(4) OVER (ORDER BY amount) AS quartile,
+       -- Category percentiles
+       PERCENT_RANK() OVER (PARTITION BY category ORDER BY amount) AS category_percentile,
+       NTILE(3) OVER (PARTITION BY category ORDER BY amount) AS category_tertile
+FROM sample_data
+ORDER BY amount DESC;
+
+-- ==============================================
+-- DATABASE-SPECIFIC OPTIMIZATIONS
+-- ==============================================
+
+-- Index recommendations (All databases)
+CREATE INDEX idx_sample_category_amount ON sample_data(category, amount DESC);
+CREATE INDEX idx_sample_created_at ON sample_data(created_at);
+CREATE INDEX idx_sample_duplicate_check ON sample_data(id, name, category, created_at, amount);
+
+-- ==============================================
+-- PERFORMANCE COMPARISON QUERIES
+-- ==============================================
+
+-- Traditional GROUP BY approach (for comparison)
+SELECT category,
+       COUNT(*) AS record_count,
+       SUM(amount) AS total_amount,
+       AVG(amount) AS avg_amount,
+       MIN(amount) AS min_amount,
+       MAX(amount) AS max_amount
+FROM sample_data
+GROUP BY category
+ORDER BY category;
+
+-- Window function approach (preserves detail)
+SELECT id,
+       name,
+       category,
+       amount,
+       COUNT(*) OVER (PARTITION BY category) AS category_count,
+       SUM(amount) OVER (PARTITION BY category) AS category_total,
+       AVG(amount) OVER (PARTITION BY category) AS category_avg,
+       MIN(amount) OVER (PARTITION BY category) AS category_min,
+       MAX(amount) OVER (PARTITION BY category) AS category_max,
+       -- Show percentage of category total
+       ROUND(amount * 100.0 / SUM(amount) OVER (PARTITION BY category), 2) AS pct_of_category
+FROM sample_data
+ORDER BY category, amount DESC;
+ */
