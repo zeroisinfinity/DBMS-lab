@@ -711,8 +711,454 @@ Do you want me to make that?
 SELECT count(DISTINCT employees.department) as distict_dept FROM employees;
 select sum(dept) as dept from (select count(*) as dept from employees group by employees.department) as total_dept ;
 
+-- JOINS --------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE emp (
+                     emp_id INT PRIMARY KEY AUTO_INCREMENT,
+                     name VARCHAR(100) NOT NULL,
+                     email VARCHAR(100) UNIQUE,
+                     mgr_id INT,
+                     dept_id INT,
+                     salary DECIMAL(10,2),
+                     hire_dt DATE,
+                     FOREIGN KEY (mgr_id) REFERENCES emp(emp_id)
+);
+
+INSERT INTO emp (name, email, mgr_id, dept_id, salary, hire_dt) VALUES
+                                                                                               ('John Smith', 'john.smith@company.com', NULL, 1, 95000.00, '2020-01-15'),
+                                                                                               ('Sarah Johnson', 'sarah.johnson@company.com', 1, 1, 75000.00, '2020-03-20'),
+                                                                                               ('Mike Davis', 'mike.davis@company.com', 1, 1, 70000.00, '2021-05-10'),
+                                                                                               ('Emma Wilson', 'emma.wilson@company.com', NULL, 2, 80000.00, '2019-08-12'),
+                                                                                               ('David Brown', 'david.brown@company.com', 4, 2, 65000.00, '2021-02-18'),
+                                                                                               ('Lisa Garcia', 'lisa.garcia@company.com', 4, 2, 62000.00, '2022-01-05'),
+                                                                                               ('Robert Taylor', 'robert.taylor@company.com', NULL, 3, 85000.00, '2020-11-30'),
+                                                                                               ('Jennifer Lee', 'jennifer.lee@company.com', 7, 3, 58000.00, '2021-09-15'),
+                                                                                               ('Michael Wang', 'michael.wang@company.com', NULL, 4, 90000.00, '2018-06-01'),
+                                                                                               ('Amanda Clark', 'amanda.clark@company.com', 9, 4, 55000.00, '2022-03-10');
+
+
+CREATE TABLE departments (
+                             department_id INT PRIMARY KEY AUTO_INCREMENT,
+                             department_name VARCHAR(100) NOT NULL,
+                             location VARCHAR(100),
+                             budget DECIMAL(12,2)
+);
+
+
+INSERT INTO departments (department_name, location, budget) VALUES
+                                                                ('Engineering', 'New York', 500000.00),
+                                                                ('Sales', 'Chicago', 300000.00),
+                                                                ('Marketing', 'Los Angeles', 200000.00),
+                                                                ('HR', 'New York', 150000.00),
+                                                                ('Finance', 'Boston', 250000.00),
+                                                                ('IT Support', 'Austin', 180000.00),
+                                                                ('Operations', 'Seattle', 220000.00),
+                                                                ('Research', 'San Francisco', 400000.00),
+                                                                ('Customer Service', 'Miami', 120000.00),
+                                                                ('Legal', 'Washington DC', 180000.00);
+
+
+CREATE TABLE customers (
+                           customer_id INT PRIMARY KEY AUTO_INCREMENT,
+                           customer_name VARCHAR(100) NOT NULL,
+                           email VARCHAR(100) UNIQUE,
+                           phone VARCHAR(20),
+                           city VARCHAR(50),
+                           registration_date DATE
+);
+
+INSERT INTO customers (customer_name, email, phone, city, registration_date) VALUES
+                                                                                 ('Alice Cooper', 'alice.cooper@email.com', '555-0101', 'New York', '2023-01-15'),
+                                                                                 ('Bob Martinez', 'bob.martinez@email.com', '555-0102', 'Los Angeles', '2023-02-20'),
+                                                                                 ('Carol White', 'carol.white@email.com', '555-0103', 'Chicago', '2023-03-10'),
+                                                                                 ('Daniel Kim', 'daniel.kim@email.com', '555-0104', 'Houston', '2023-04-05'),
+                                                                                 ('Eva Rodriguez', 'eva.rodriguez@email.com', '555-0105', 'Phoenix', '2023-05-12'),
+                                                                                 ('Frank Thompson', 'frank.thompson@email.com', '555-0106', 'Philadelphia', '2023-06-18'),
+                                                                                 ('Grace Chen', 'grace.chen@email.com', '555-0107', 'San Antonio', '2023-07-22'),
+                                                                                 ('Henry Johnson', 'henry.johnson@email.com', '555-0108', 'San Diego', '2023-08-30'),
+                                                                                 ('Iris Patel', 'iris.patel@email.com', '555-0109', 'Dallas', '2023-09-14'),
+                                                                                 ('Jack Wilson', 'jack.wilson@email.com', '555-0110', 'Austin', '2023-10-25');
+
+
+CREATE TABLE products (
+                          product_id INT PRIMARY KEY AUTO_INCREMENT,
+                          product_name VARCHAR(100) NOT NULL,
+                          category VARCHAR(50),
+                          price DECIMAL(10,2),
+                          stock_quantity INT DEFAULT 0
+);
+
+INSERT INTO products (product_name, category, price, stock_quantity) VALUES
+                                                                         ('Laptop Pro 15"', 'Electronics', 1299.99, 50),
+                                                                         ('Wireless Mouse', 'Electronics', 29.99, 200),
+                                                                         ('Office Chair', 'Furniture', 199.99, 30),
+                                                                         ('Standing Desk', 'Furniture', 399.99, 15),
+                                                                         ('Coffee Mug', 'Office Supplies', 12.99, 100),
+                                                                         ('Notebook Set', 'Office Supplies', 8.99, 150),
+                                                                         ('Smartphone', 'Electronics', 699.99, 75),
+                                                                         ('Tablet 10"', 'Electronics', 329.99, 60),
+                                                                         ('Desk Lamp', 'Furniture', 45.99, 40),
+                                                                         ('Pen Set', 'Office Supplies', 15.99, 120);
 
 
 
+CREATE TABLE orders (
+                        order_id INT PRIMARY KEY AUTO_INCREMENT,
+                        customer_id INT,
+                        product_id INT,
+                        employee_id INT,
+                        quantity INT DEFAULT 1,
+                        order_date DATE,
+                        total_amount DECIMAL(10,2),
+                        FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
+                        FOREIGN KEY (product_id) REFERENCES products(product_id),
+                        FOREIGN KEY (employee_id) REFERENCES employees(employee_id)
+);
 
+INSERT INTO orders (customer_id, product_id, employee_id, quantity, order_date, total_amount) VALUES
+                                                                                                  (1, 1, 5, 1, '2024-01-10', 1299.99),
+                                                                                                  (2, 7, 6, 1, '2024-01-15', 699.99),
+                                                                                                  (3, 3, 5, 2, '2024-01-20', 399.98),
+                                                                                                  (1, 2, 6, 3, '2024-02-01', 89.97),
+                                                                                                  (4, 4, 5, 1, '2024-02-05', 399.99),
+                                                                                                  (5, 5, 6, 5, '2024-02-10', 64.95),
+                                                                                                  (2, 8, 5, 1, '2024-02-15', 329.99),
+                                                                                                  (6, 6, 6, 10, '2024-03-01', 89.90),
+                                                                                                  (7, 9, 5, 2, '2024-03-10', 91.98),
+                                                                                                  (3, 10, 6, 4, '2024-03-15', 63.96);
+
+
+select name , department_name
+    from emp inner join departments on
+    emp.dept_id = departments.department_id;
+select * from emp;
+select * from departments; -- INNER JOIN
+
+select departments.department_name , emp.name
+    from departments left join emp
+    on departments.department_id = emp.dept_id; -- LEFT JOIN
+
+select orders.order_date , orders.total_amount, customers.customer_id , customers.customer_name , customers.city
+    from orders right join customers
+    on customers.customer_id = orders.customer_id; -- RIGHT JOIN
+
+/* select emp_id , name , emp.dept_id , order_id , order_date
+    from emp full outer join orders
+    on emp.emp_id = orders.employee_id; */  -- not supported
+
+select emp_id , name , emp.dept_id , order_id , order_date
+from emp left join orders
+on emp.emp_id = orders.employee_id -- same result as union no new emps in orders
+
+union all
+
+select emp_id , name , emp.dept_id , order_id , order_date
+from emp right join orders
+on emp.emp_id = orders.employee_id
+where emp.emp_id is null;
+
+select emp_id , name , emp.dept_id , order_id , order_date
+from emp cross join orders
+on emp.emp_id = orders.employee_id; -- Problem: CROSS JOIN cannot have an ON condition. This will throw a syntax error.
+
+
+select emp_id , name , emp.dept_id , order_id , order_date
+from emp cross join orders
+
+/*
+ -- Returns every employee paired with every order
+-- 10 employees × 10 orders = 100 rows
+-- No relationship filtering - pure Cartesian product
+ **Exactly right!**
+
+CROSS JOIN has **no condition**, that's why there are **no NULLs**.
+
+**The logic:**
+- **CROSS JOIN** = No filtering condition → Every row from table1 combines with every row from table2
+- **No condition** = No "matching" or "non-matching" concept
+- **No matching concept** = No reason to insert NULLs for "missing" data
+
+**Other joins create NULLs because they have conditions:**
+
+```sql
+-- LEFT JOIN has a condition
+FROM emp LEFT JOIN orders ON emp.emp_id = orders.employee_id
+-- When condition fails → NULL for orders columns
+
+-- CROSS JOIN has no condition
+FROM emp CROSS JOIN orders
+-- No condition to fail → No NULLs needed
+```
+
+**Simple way to remember:**
+- **Condition exists** → Can fail → NULLs possible
+- **No condition** → Nothing to fail → No NULLs
+
+**CROSS JOIN just says:** "Give me every employee with every order, no questions asked!"
+
+So you get:
+- Employee 1 + Order 1
+- Employee 1 + Order 2
+- Employee 1 + Order 3
+- ...
+- Employee 10 + Order 10
+
+**100 complete rows, no NULLs from the join operation.**
+
+You nailed the concept! 🎯
+ */
+select * from emp;
+select a.emp_id , a.name , b.name
+from emp as a
+         inner join emp as b
+                    on a.mgr_id = b.emp_id; -- INNER
+
+
+
+select a.emp_id , a.name , b.name
+from emp as a
+         left join emp as b
+                    on a.mgr_id = b.emp_id; -- LEFT
+
+
+
+select a.emp_id , a.name , b.name
+from emp as a
+         right join emp as b
+                    on a.mgr_id = b.emp_id; -- RIGHT
+
+
+
+select a.emp_id , a.name , b.name
+from emp as a
+         left join emp as b
+                    on a.mgr_id = b.emp_id
+
+union all  -- FULL OUTER
+
+select a.emp_id , a.name , b.name
+from emp as a
+         right join emp as b
+                    on a.mgr_id = b.emp_id
+where a.emp_id is null;
+
+
+
+select a.emp_id , a.name , b.name
+from emp as a
+         cross join emp as b
+                    on a.mgr_id = b.emp_id; -- CROSS -- same ans without null no other comb possible anyway
+
+select a.emp_id , a.name , b.name
+from emp as a
+         cross join emp as b; -- CROSS
+
+/*
+ **Not exactly!**
+
+Self join is **broader** than just inner join.
+
+**Self join = Any join where table1 = table2**
+
+You can do self joins with **any** join type:
+
+```sql
+-- Self INNER JOIN
+FROM emp a INNER JOIN emp b ON a.mgr_id = b.emp_id
+
+-- Self LEFT JOIN
+FROM emp a LEFT JOIN emp b ON a.mgr_id = b.emp_id
+
+-- Self RIGHT JOIN
+FROM emp a RIGHT JOIN emp b ON a.mgr_id = b.emp_id
+
+-- Self CROSS JOIN
+FROM emp a CROSS JOIN emp b
+```
+
+**More accurate:**
+- **Self join** = Concept of joining table to itself
+- **INNER JOIN** = Type of join (only matching rows)
+- **Self INNER JOIN** = Joining table to itself + only matching rows
+
+**Example differences:**
+
+```sql
+-- Self INNER JOIN: Only employees WITH managers
+SELECT a.name, b.name as manager
+FROM emp a JOIN emp b ON a.mgr_id = b.emp_id;
+-- Result: 6 rows (excludes John, Emma, Robert, Michael)
+
+-- Self LEFT JOIN: ALL employees, managers where available
+SELECT a.name, b.name as manager
+FROM emp a LEFT JOIN emp b ON a.mgr_id = b.emp_id;
+-- Result: 10 rows (includes NULLs for employees without managers)
+```
+
+**So the formula is:**
+**Self join = Same table used twice**
+**Join type = INNER/LEFT/RIGHT/CROSS determines the behavior**
+
+Self join ≠ Inner join, but **Self Inner Join = Inner Join on same table** 🎯
+
+ **Execution sequence of the SQL statement:**
+
+```sql
+select a.emp_id , a.name , b.name
+from emp as a
+         inner join emp as b
+                    on a.mgr_id = b.emp_id;
+```
+
+**Logical Processing Order:**
+
+1. **FROM emp as a**
+   - Load the first instance of emp table, alias it as 'a'
+
+2. **INNER JOIN emp as b**
+   - Load the second instance of emp table, alias it as 'b'
+   - Prepare for join operation
+
+3. **ON a.mgr_id = b.emp_id**
+   - Apply join condition
+   - For each row in 'a', find matching rows in 'b' where mgr_id = emp_id
+   - Keep only rows that satisfy the condition (INNER JOIN behavior)
+
+4. **SELECT a.emp_id, a.name, b.name**
+   - Project the specified columns from the joined result set
+   - Return emp_id and name from table 'a', name from table 'b'
+
+**What happens internally:**
+```
+Step 1: FROM emp as a        → Load employees as 'a'
+Step 2: INNER JOIN emp as b  → Load employees as 'b'
+Step 3: ON condition         → Match where a.mgr_id = b.emp_id
+Step 4: SELECT columns       → Project requested columns
+```
+
+**Result:** Only employees who have managers (mgr_id is not NULL and matches an existing emp_id) will be returned with their manager's name.
+
+**Note:** Query optimizer may physically execute in different order for performance, but logical result follows this sequence.
+ */
+
+select * from emp as a , emp as b
+    where a.mgr_id = b.emp_id; -- without join
+
+-- Create student_games table
+CREATE TABLE student_games (
+                               student_id INT,
+                               game_id INT
+);
+
+-- Insert sample data
+-- Students playing only 1 game
+INSERT INTO student_games (student_id, game_id) VALUES (101, 1);
+INSERT INTO student_games (student_id, game_id) VALUES (102, 2);
+INSERT INTO student_games (student_id, game_id) VALUES (103, 3);
+
+-- Students playing exactly 2 games
+INSERT INTO student_games (student_id, game_id) VALUES (201, 1);
+INSERT INTO student_games (student_id, game_id) VALUES (201, 2);
+INSERT INTO student_games (student_id, game_id) VALUES (202, 2);
+INSERT INTO student_games (student_id, game_id) VALUES (202, 3);
+
+-- Students playing more than 3 games
+INSERT INTO student_games (student_id, game_id) VALUES (301, 1);
+INSERT INTO student_games (student_id, game_id) VALUES (301, 2);
+INSERT INTO student_games (student_id, game_id) VALUES (301, 3);
+INSERT INTO student_games (student_id, game_id) VALUES (301, 4);
+INSERT INTO student_games (student_id, game_id) VALUES (302, 1);
+INSERT INTO student_games (student_id, game_id) VALUES (302, 2);
+INSERT INTO student_games (student_id, game_id) VALUES (302, 3);
+INSERT INTO student_games (student_id, game_id) VALUES (302, 4);
+INSERT INTO student_games (student_id, game_id) VALUES (302, 5);
+
+-- Students with NULL game_id (registered but not assigned games)
+INSERT INTO student_games (student_id, game_id) VALUES (401, NULL);
+INSERT INTO student_games (student_id, game_id) VALUES (402, NULL);
+
+-- View all data
+SELECT * FROM student_games ORDER BY student_id, game_id;
+
+select student_games.student_id
+from student_games
+group by student_id
+having count(*) < 3;
+SELECT * FROM student_games where student_games.student_id=201 ORDER BY student_id, game_id;
+
+
+-- claude ---
+-- Original GROUP BY + HAVING solution
+SELECT student_id
+FROM student_games
+GROUP BY student_id
+HAVING COUNT(*) < 3;
+
+-- JOIN-based alternatives:
+
+-- METHOD 1: Using LEFT JOIN to count relationships
+SELECT DISTINCT s1.student_id
+FROM student_games s1
+         LEFT JOIN student_games s2 ON s1.student_id = s2.student_id AND s1.game_id != s2.game_id
+         LEFT JOIN student_games s3 ON s1.student_id = s3.student_id AND s1.game_id != s3.game_id AND s2.game_id != s3.game_id
+WHERE s3.student_id IS NULL;
+
+
+-- METHOD 2: Using correlated subquery with EXISTS (MySQL compatible)
+SELECT DISTINCT s1.student_id
+FROM student_games s1
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM student_games s2, student_games s3, student_games s4
+    WHERE s2.student_id = s1.student_id
+      AND s3.student_id = s1.student_id
+      AND s4.student_id = s1.student_id
+      AND (s2.game_id != s3.game_id OR (s2.game_id IS NULL AND s3.game_id IS NOT NULL) OR (s2.game_id IS NOT NULL AND s3.game_id IS NULL))
+      AND (s2.game_id != s4.game_id OR (s2.game_id IS NULL AND s4.game_id IS NOT NULL) OR (s2.game_id IS NOT NULL AND s4.game_id IS NULL))
+      AND (s3.game_id != s4.game_id OR (s3.game_id IS NULL AND s4.game_id IS NOT NULL) OR (s3.game_id IS NOT NULL AND s4.game_id IS NULL))
+);
+
+-- METHOD 3: More practical - using window functions (MySQL 8.0+)
+SELECT student_id
+FROM (
+         SELECT student_id,
+                ROW_NUMBER() OVER (PARTITION BY student_id ORDER BY game_id) as rn
+         FROM student_games
+     ) ranked
+GROUP BY student_id
+HAVING MAX(rn) < 3;
+
+-- METHOD 4: Self join with counting logic (most readable)
+-- CORRECTED METHOD 4:
+SELECT DISTINCT s1.student_id  -- Add DISTINCT here
+FROM student_games s1
+WHERE s1.student_id NOT IN (
+    SELECT DISTINCT s2.student_id
+    FROM student_games s2
+             JOIN student_games s3 ON s2.student_id = s3.student_id AND s2.game_id != s3.game_id
+             JOIN student_games s4 ON s2.student_id = s4.student_id AND s2.game_id != s4.game_id AND s3.game_id != s4.game_id
+    WHERE s4.student_id IS NOT NULL
+);
+-- For the second query: SELECT * FROM student_games where student_id=201
+-- Join equivalent (though overkill for this simple case):
+
+-- METHOD 1: Self join with DISTINCT
+-- Option 3: Simpler approach using subquery count
+SELECT DISTINCT s1.*
+FROM student_games s1
+WHERE (
+          SELECT COUNT(*)
+          FROM student_games s2
+          WHERE s2.student_id = s1.student_id
+      ) < 3
+ORDER BY s1.student_id, s1.game_id;
+-- ----------------------------------------------------------------------------------------------------------------
+
+select products.product_id , orders.order_id , emp.emp_id
+    from products left join orders on orders.product_id = products.product_id
+    left join emp on orders.employee_id = emp.emp_id;
+
+select products.product_id , orders.order_id , emp.emp_id
+from products right join orders on orders.product_id = products.product_id
+              left join emp on orders.employee_id = emp.emp_id;
 

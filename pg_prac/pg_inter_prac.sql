@@ -424,9 +424,357 @@ SELECT count(DISTINCT employees.department) as distict_dept FROM employees;
 select sum(dept) as dept from (select count(*) as dept from employees group by employees.department) as total_dept ;
 
 
+-- JOIN --------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Create departments table first (referenced by emp table)
+CREATE TABLE departments (
+    department_id SERIAL PRIMARY KEY,
+    department_name VARCHAR(100) NOT NULL,
+    location VARCHAR(100),
+    budget DECIMAL(12,2)
+);
+
+-- Insert departments data
+INSERT INTO departments (department_name, location, budget) VALUES
+('Engineering', 'New York', 500000.00),
+('Sales', 'Chicago', 300000.00),
+('Marketing', 'Los Angeles', 200000.00),
+('HR', 'New York', 150000.00),
+('Finance', 'Boston', 250000.00),
+('IT Support', 'Austin', 180000.00),
+('Operations', 'Seattle', 220000.00),
+('Research', 'San Francisco', 400000.00),
+('Customer Service', 'Miami', 120000.00),
+('Legal', 'Washington DC', 180000.00);
+
+-- Create emp table with self-referencing foreign key
+CREATE TABLE emp (
+    emp_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    mgr_id INTEGER,
+    dept_id INTEGER,
+    salary DECIMAL(10,2),
+    hire_dt DATE,
+    FOREIGN KEY (mgr_id) REFERENCES emp(emp_id),
+    FOREIGN KEY (dept_id) REFERENCES departments(department_id)
+);
+
+-- Insert emp data
+INSERT INTO emp (name, email, mgr_id, dept_id, salary, hire_dt) VALUES
+('John Smith', 'john.smith@company.com', NULL, 1, 95000.00, '2020-01-15'),
+('Sarah Johnson', 'sarah.johnson@company.com', 1, 1, 75000.00, '2020-03-20'),
+('Mike Davis', 'mike.davis@company.com', 1, 1, 70000.00, '2021-05-10'),
+('Emma Wilson', 'emma.wilson@company.com', NULL, 2, 80000.00, '2019-08-12'),
+('David Brown', 'david.brown@company.com', 4, 2, 65000.00, '2021-02-18'),
+('Lisa Garcia', 'lisa.garcia@company.com', 4, 2, 62000.00, '2022-01-05'),
+('Robert Taylor', 'robert.taylor@company.com', NULL, 3, 85000.00, '2020-11-30'),
+('Jennifer Lee', 'jennifer.lee@company.com', 7, 3, 58000.00, '2021-09-15'),
+('Michael Wang', 'michael.wang@company.com', NULL, 4, 90000.00, '2018-06-01'),
+('Amanda Clark', 'amanda.clark@company.com', 9, 4, 55000.00, '2022-03-10');
+
+-- Create customers table
+CREATE TABLE customers (
+    customer_id SERIAL PRIMARY KEY,
+    customer_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    phone VARCHAR(20),
+    city VARCHAR(50),
+    registration_date DATE
+);
+
+-- Insert customers data
+INSERT INTO customers (customer_name, email, phone, city, registration_date) VALUES
+('Alice Cooper', 'alice.cooper@email.com', '555-0101', 'New York', '2023-01-15'),
+('Bob Martinez', 'bob.martinez@email.com', '555-0102', 'Los Angeles', '2023-02-20'),
+('Carol White', 'carol.white@email.com', '555-0103', 'Chicago', '2023-03-10'),
+('Daniel Kim', 'daniel.kim@email.com', '555-0104', 'Houston', '2023-04-05'),
+('Eva Rodriguez', 'eva.rodriguez@email.com', '555-0105', 'Phoenix', '2023-05-12'),
+('Frank Thompson', 'frank.thompson@email.com', '555-0106', 'Philadelphia', '2023-06-18'),
+('Grace Chen', 'grace.chen@email.com', '555-0107', 'San Antonio', '2023-07-22'),
+('Henry Johnson', 'henry.johnson@email.com', '555-0108', 'San Diego', '2023-08-30'),
+('Iris Patel', 'iris.patel@email.com', '555-0109', 'Dallas', '2023-09-14'),
+('Jack Wilson', 'jack.wilson@email.com', '555-0110', 'Austin', '2023-10-25');
+
+-- Create products table
+CREATE TABLE products (
+    product_id SERIAL PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50),
+    price DECIMAL(10,2),
+    stock_quantity INTEGER DEFAULT 0
+);
+
+-- Insert products data
+INSERT INTO products (product_name, category, price, stock_quantity) VALUES
+('Laptop Pro 15"', 'Electronics', 1299.99, 50),
+('Wireless Mouse', 'Electronics', 29.99, 200),
+('Office Chair', 'Furniture', 199.99, 30),
+('Standing Desk', 'Furniture', 399.99, 15),
+('Coffee Mug', 'Office Supplies', 12.99, 100),
+('Notebook Set', 'Office Supplies', 8.99, 150),
+('Smartphone', 'Electronics', 699.99, 75),
+('Tablet 10"', 'Electronics', 329.99, 60),
+('Desk Lamp', 'Furniture', 45.99, 40),
+('Pen Set', 'Office Supplies', 15.99, 120);
+
+-- Create order_details table
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    customer_id INTEGER,
+    product_id INTEGER,
+    employee_id INTEGER,
+    quantity INTEGER DEFAULT 1,
+    order_date DATE,
+    total_amount DECIMAL(10,2),
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id),
+    FOREIGN KEY (employee_id) REFERENCES emp(emp_id)
+);
+
+-- Insert orders data
+INSERT INTO order_details (customer_id, product_id, employee_id, quantity, order_date, total_amount) VALUES
+(1, 1, 5, 1, '2024-01-10', 1299.99),
+(2, 7, 6, 1, '2024-01-15', 699.99),
+(3, 3, 5, 2, '2024-01-20', 399.98),
+(1, 2, 6, 3, '2024-02-01', 89.97),
+(4, 4, 5, 1, '2024-02-05', 399.99),
+(5, 5, 6, 5, '2024-02-10', 64.95),
+(2, 8, 5, 1, '2024-02-15', 329.99),
+(6, 6, 6, 10, '2024-03-01', 89.90),
+(7, 9, 5, 2, '2024-03-10', 91.98),
+(3, 10, 6, 4, '2024-03-15', 63.96);
 
 
+-- FIXED QUERIES - Correcting table/column name mismatches
 
+-- 1. Basic INNER JOIN (FIXED: Missing 'S' in SELECT)
+SELECT name, department_name
+FROM emp INNER JOIN departments ON
+    emp.dept_id = departments.department_id;
 
+SELECT * FROM emp;
+SELECT * FROM departments;
 
+-- 2. LEFT JOIN - departments with employees
+SELECT departments.department_name, emp.name
+FROM departments LEFT JOIN emp
+    ON departments.department_id = emp.dept_id;
 
+-- 3. RIGHT JOIN - customers with orders (FIXED: table name orders not order_details)
+SELECT orders.order_date, orders.total_amount, customers.customer_id, customers.customer_name, customers.city
+FROM orders RIGHT JOIN customers
+    ON customers.customer_id = orders.customer_id;
+
+-- 4. FULL OUTER JOIN - customers and orders (FIXED: table name and comment)
+SELECT orders.order_date, orders.total_amount, customers.customer_id, customers.customer_name, customers.city
+FROM orders FULL OUTER JOIN customers
+    ON customers.customer_id = orders.customer_id; -- FULL OUTER JOIN (not RIGHT JOIN in comment)
+
+-- 5. CROSS JOIN - all employees with all orders
+SELECT emp_id, name, emp.dept_id, order_id, order_date
+FROM emp CROSS JOIN orders;
+
+-- 6. Self JOIN examples - employees and their managers
+SELECT * FROM emp;
+
+-- INNER self join - only employees WITH managers
+SELECT a.emp_id, a.name, b.name AS manager_name
+FROM emp AS a
+    INNER JOIN emp AS b ON a.mgr_id = b.emp_id;
+
+-- LEFT self join - ALL employees, managers where available
+SELECT a.emp_id, a.name, b.name AS manager_name
+FROM emp AS a
+    LEFT JOIN emp AS b ON a.mgr_id = b.emp_id;
+
+-- RIGHT self join - all potential managers and their direct reports
+SELECT a.emp_id, a.name AS employee_name, b.name AS manager_name
+FROM emp AS a
+    RIGHT JOIN emp AS b ON a.mgr_id = b.emp_id;
+
+-- FULL OUTER self join - all employee-manager relationships
+SELECT a.emp_id, a.name AS employee_name, b.name AS manager_name
+FROM emp AS a
+    FULL OUTER JOIN emp AS b ON a.mgr_id = b.emp_id;
+
+-- CROSS self join - every employee paired with every employee
+SELECT a.emp_id, a.name AS employee_name, b.name AS other_employee
+FROM emp AS a
+    CROSS JOIN emp AS b;
+
+-- 7. Alternative syntax (comma join) - equivalent to INNER JOIN
+SELECT * FROM emp AS a, emp AS b
+WHERE a.mgr_id = b.emp_id;
+
+-- 8. Create student_games table
+CREATE TABLE student_games (
+    student_id INT,
+    game_id INT
+);
+
+-- Insert sample data
+-- Students playing only 1 game
+INSERT INTO student_games (student_id, game_id) VALUES (101, 1);
+INSERT INTO student_games (student_id, game_id) VALUES (102, 2);
+INSERT INTO student_games (student_id, game_id) VALUES (103, 3);
+
+-- Students playing exactly 2 games
+INSERT INTO student_games (student_id, game_id) VALUES (201, 1);
+INSERT INTO student_games (student_id, game_id) VALUES (201, 2);
+INSERT INTO student_games (student_id, game_id) VALUES (202, 2);
+INSERT INTO student_games (student_id, game_id) VALUES (202, 3);
+
+-- Students playing more than 3 games
+INSERT INTO student_games (student_id, game_id) VALUES (301, 1);
+INSERT INTO student_games (student_id, game_id) VALUES (301, 2);
+INSERT INTO student_games (student_id, game_id) VALUES (301, 3);
+INSERT INTO student_games (student_id, game_id) VALUES (301, 4);
+INSERT INTO student_games (student_id, game_id) VALUES (302, 1);
+INSERT INTO student_games (student_id, game_id) VALUES (302, 2);
+INSERT INTO student_games (student_id, game_id) VALUES (302, 3);
+INSERT INTO student_games (student_id, game_id) VALUES (302, 4);
+INSERT INTO student_games (student_id, game_id) VALUES (302, 5);
+
+-- Students with NULL game_id (registered but not assigned games)
+INSERT INTO student_games (student_id, game_id) VALUES (401, NULL);
+INSERT INTO student_games (student_id, game_id) VALUES (402, NULL);
+
+-- View all data
+SELECT * FROM student_games ORDER BY student_id, game_id;
+
+-- Basic GROUP BY + HAVING
+SELECT student_games.student_id
+FROM student_games
+GROUP BY student_id
+HAVING COUNT(*) < 3;
+
+-- Check specific student
+SELECT * FROM student_games WHERE student_games.student_id = 201 ORDER BY student_id, game_id;
+
+-- STUDENT GAMES ANALYSIS QUERIES:
+
+-- Original GROUP BY + HAVING solution
+SELECT student_id
+FROM student_games
+GROUP BY student_id
+HAVING COUNT(*) < 3;
+
+-- 1. Count games per student
+SELECT student_id, COUNT(game_id) AS games_count
+FROM student_games
+GROUP BY student_id
+ORDER BY student_id;
+
+-- 2. Students playing only 1 game
+SELECT student_id, COUNT(game_id) AS games_count
+FROM student_games
+WHERE game_id IS NOT NULL
+GROUP BY student_id
+HAVING COUNT(game_id) = 1;
+
+-- 3. Students playing exactly 2 games
+SELECT student_id, COUNT(game_id) AS games_count
+FROM student_games
+WHERE game_id IS NOT NULL
+GROUP BY student_id
+HAVING COUNT(game_id) = 2;
+
+-- 4. Students playing more than 3 games
+SELECT student_id, COUNT(game_id) AS games_count
+FROM student_games
+WHERE game_id IS NOT NULL
+GROUP BY student_id
+HAVING COUNT(game_id) > 3;
+
+-- 5. Students with NULL games (no games assigned)
+SELECT student_id
+FROM student_games
+WHERE game_id IS NULL;
+
+-- 6. Students with their game list (comma separated) - PostgreSQL version
+SELECT student_id, STRING_AGG(game_id::TEXT, ', ' ORDER BY game_id) AS games_list
+FROM student_games
+WHERE game_id IS NOT NULL
+GROUP BY student_id;
+
+-- 7. Game participation summary
+SELECT
+    student_id,
+    COUNT(game_id) AS total_games,
+    CASE
+        WHEN COUNT(game_id) = 0 THEN 'No Games'
+        WHEN COUNT(game_id) = 1 THEN 'Single Game'
+        WHEN COUNT(game_id) = 2 THEN 'Two Games'
+        WHEN COUNT(game_id) > 3 THEN 'Multiple Games (3+)'
+        ELSE 'Few Games'
+    END AS participation_level
+FROM student_games
+GROUP BY student_id
+ORDER BY total_games DESC, student_id;
+
+-- 8. Most popular games
+SELECT game_id, COUNT(student_id) AS student_count
+FROM student_games
+WHERE game_id IS NOT NULL
+GROUP BY game_id
+ORDER BY student_count DESC;
+
+-- 9. Students playing specific game (example: game_id = 1)
+SELECT DISTINCT student_id
+FROM student_games
+WHERE game_id = 1;
+
+-- 10. Total unique students and games
+SELECT
+    COUNT(DISTINCT student_id) AS total_students,
+    COUNT(DISTINCT game_id) AS total_games
+FROM student_games;
+
+-- PostgreSQL-SPECIFIC ENHANCEMENTS:
+
+-- 11. Students with game arrays
+SELECT student_id, ARRAY_AGG(game_id ORDER BY game_id) AS games_array
+FROM student_games
+WHERE game_id IS NOT NULL
+GROUP BY student_id;
+
+-- 12. Using FILTER clause
+SELECT 
+    student_id,
+    COUNT(game_id) AS total_games,
+    COUNT(game_id) FILTER (WHERE game_id <= 5) AS games_1_to_5,
+    COUNT(game_id) FILTER (WHERE game_id > 5) AS games_above_5
+FROM student_games
+GROUP BY student_id
+ORDER BY student_id;
+
+-- 13. Window function - rank students by game count
+SELECT 
+    student_id,
+    COUNT(game_id) AS games_count,
+    RANK() OVER (ORDER BY COUNT(game_id) DESC) AS rank_by_games
+FROM student_games
+WHERE game_id IS NOT NULL
+GROUP BY student_id
+ORDER BY rank_by_games, student_id;
+
+-- PRODUCTS-ORDERS-EMPLOYEES JOINS (FIXED: All using correct table name 'orders')
+
+-- All products with their orders and employees
+SELECT products.product_id, orders.order_id, emp.emp_id
+FROM products 
+    LEFT JOIN orders ON orders.product_id = products.product_id
+    LEFT JOIN emp ON orders.employee_id = emp.emp_id;
+
+-- All orders with their products and employees (using RIGHT JOIN then LEFT JOIN)
+SELECT products.product_id, orders.order_id, emp.emp_id
+FROM products 
+    RIGHT JOIN orders ON orders.product_id = products.product_id
+    LEFT JOIN emp ON orders.employee_id = emp.emp_id;
+
+-- More readable equivalent - start from orders table
+SELECT products.product_id, orders.order_id, emp.emp_id
+FROM orders 
+    LEFT JOIN products ON orders.product_id = products.product_id
+    LEFT JOIN emp ON orders.employee_id = emp.emp_id;
