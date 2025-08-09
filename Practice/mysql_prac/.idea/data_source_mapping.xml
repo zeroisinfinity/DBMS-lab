@@ -3,7 +3,7 @@
   <component name="DataSourcePerFileMappings">
     <file url="file://$PROJECT_DIR$/basics_mysqll.sql" value="fd045fec-5633-4136-a36f-37128f4b300a" />
     <file url="file://$PROJECT_DIR$/inter_mysql.sql" value="fd045fec-5633-4136-a36f-37128f4b300a" />
-    <file url="file://$PROJECT_DIR$/../azure_prac/inter_mssql.sql" value="021e2ed1-b43c-4d61-8efc-742d92f9e442" />
     <file url="file://$PROJECT_DIR$/../pg_prac/sql_orderby.sql" value="6cf4d8b2-82ce-42ad-9eae-ba17ca571d5e" />
+    <file url="mock:///inter_mysql.sql" value="fd045fec-5633-4136-a36f-37128f4b300a" />
   </component>
 </project>

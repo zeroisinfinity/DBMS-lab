@@ -553,7 +553,7 @@ select employees.department , employees.role , sum(employees.salary) as salarypo
     group by department , role with rollup ;
 
 select sum(salarypool) as salarypool
-    from (SELECT department, role, sum(salary) AS salarypool
+    from (SELECT department, sum(salary) AS salarypool
     FROM employees
     GROUP BY department, role
     ORDER BY department) as role_salary
@@ -863,7 +863,7 @@ on emp.emp_id = orders.employee_id; -- Problem: CROSS JOIN cannot have an ON con
 
 
 select emp_id , name , emp.dept_id , order_id , order_date
-from emp cross join orders
+from emp cross join orders;
 
 /*
  -- Returns every employee paired with every order
@@ -1162,3 +1162,264 @@ select products.product_id , orders.order_id , emp.emp_id
 from products right join orders on orders.product_id = products.product_id
               left join emp on orders.employee_id = emp.emp_id;
 
+-- ranks -------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+-- MySQL
+CREATE TABLE sales_data (
+                            sale_id INT PRIMARY KEY AUTO_INCREMENT,
+                            sale_date DATE NOT NULL,
+                            salesperson_id INT,
+                            product_category VARCHAR(50),
+                            sale_amount DECIMAL(10,2) NOT NULL,
+                            quantity_sold INT,
+                            region VARCHAR(50)
+);
+
+-- Universal table structure (works for all databases)
+CREATE TABLE student_grades (
+                                student_id INT PRIMARY KEY,
+                                student_name VARCHAR(100) NOT NULL,
+                                subject VARCHAR(50) NOT NULL,
+                                grade DECIMAL(5,2) NOT NULL,
+                                exam_date DATE NOT NULL,
+                                semester VARCHAR(20),
+                                credit_hours INT
+);
+
+
+INSERT INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES
+                                                                                                             ('2024-01-15', 1, 'Electronics', 25000.00, 50, 'North'),
+                                                                                                             ('2024-01-16', 2, 'Clothing', 18000.00, 120, 'South'),
+                                                                                                             ('2024-01-17', 3, 'Electronics', 32000.00, 40, 'East'),
+                                                                                                             ('2024-01-18', 1, 'Books', 8000.00, 200, 'North'),
+                                                                                                             ('2024-01-19', 4, 'Electronics', 45000.00, 75, 'West'),
+                                                                                                             ('2024-01-20', 2, 'Clothing', 22000.00, 80, 'South'),
+                                                                                                             ('2024-01-21', 5, 'Books', 12000.00, 150, 'East'),
+                                                                                                             ('2024-01-22', 3, 'Electronics', 38000.00, 60, 'East'),
+                                                                                                             ('2024-01-23', 1, 'Clothing', 16000.00, 90, 'North'),
+                                                                                                             ('2024-01-24', 6, 'Books', 9000.00, 180, 'West'),
+                                                                                                             ('2024-01-25', 4, 'Electronics', 41000.00, 65, 'West'),
+                                                                                                             ('2024-01-26', 2, 'Clothing', 24000.00, 100, 'South'),
+                                                                                                             ('2024-01-27', 5, 'Books', 11000.00, 220, 'East'),
+                                                                                                             ('2024-01-28', 7, 'Electronics', 29000.00, 45, 'North'),
+                                                                                                             ('2024-01-29', 3, 'Clothing', 19000.00, 75, 'East'),
+                                                                                                             ('2024-01-30', 6, 'Books', 13000.00, 160, 'West'),
+                                                                                                             ('2024-01-31', 1, 'Electronics', 35000.00, 55, 'North'),
+                                                                                                             ('2024-02-01', 4, 'Clothing', 21000.00, 85, 'West'),
+                                                                                                             ('2024-02-02', 7, 'Books', 10000.00, 190, 'North'),
+                                                                                                             ('2024-02-03', 2, 'Electronics', 39000.00, 70, 'South');
+
+INSERT INTO student_grades VALUES
+                               (1, 'Emma Wilson', 'Mathematics', 92.5, '2024-05-15', 'Spring 2024', 3),
+                               (2, 'Liam Chen', 'Mathematics', 88.0, '2024-05-15', 'Spring 2024', 3),
+                               (3, 'Sophie Rodriguez', 'Physics', 95.0, '2024-05-20', 'Spring 2024', 4),
+                               (4, 'Mason Kim', 'Chemistry', 87.5, '2024-05-18', 'Spring 2024', 3),
+                               (5, 'Ava Patel', 'Mathematics', 91.0, '2024-05-15', 'Spring 2024', 3),
+                               (6, 'Noah Johnson', 'Physics', 89.5, '2024-05-20', 'Spring 2024', 4),
+                               (7, 'Isabella Brown', 'Chemistry', 93.0, '2024-05-18', 'Spring 2024', 3),
+                               (8, 'Ethan Davis', 'Mathematics', 85.5, '2024-05-15', 'Spring 2024', 3),
+                               (9, 'Mia Garcia', 'Physics', 90.0, '2024-05-20', 'Spring 2024', 4),
+                               (10, 'James Martinez', 'Biology', 88.5, '2024-05-22', 'Spring 2024', 4),
+                               (11, 'Charlotte Lee', 'Chemistry', 94.5, '2024-05-18', 'Spring 2024', 3),
+                               (12, 'Benjamin Taylor', 'Mathematics', 86.0, '2024-05-15', 'Spring 2024', 3),
+                               (13, 'Amelia Anderson', 'Biology', 92.0, '2024-05-22', 'Spring 2024', 4),
+                               (14, 'Lucas Thompson', 'Physics', 87.0, '2024-05-20', 'Spring 2024', 4),
+                               (15, 'Harper White', 'Chemistry', 90.5, '2024-05-18', 'Spring 2024', 3),
+                               (16, 'Alexander Harris', 'Biology', 89.0, '2024-05-22', 'Spring 2024', 4),
+                               (17, 'Evelyn Clark', 'Mathematics', 93.5, '2024-05-15', 'Spring 2024', 3),
+                               (18, 'Michael Lewis', 'Physics', 91.5, '2024-05-20', 'Spring 2024', 4),
+                               (19, 'Abigail Walker', 'Biology', 87.5, '2024-05-22', 'Spring 2024', 4),
+                               (20, 'William Hall', 'Chemistry', 92.0, '2024-05-18', 'Spring 2024', 3);
+
+select * from student_grades;
+select * from sales_data;
+
+select sales_data.product_category , quantity_sold , sales_data.sale_amount , row_number()
+        over (order by quantity_sold desc) as sr_no from sales_data;
+
+select  student_name, subject , grade , rank()
+        over (order by grade desc) as sr_no from student_grades;
+
+
+select  student_name, subject , grade , rank()
+        over (partition by student_grades.subject order by grade desc) as sr_no from student_grades;
+
+select student_grades.student_name , grade , student_grades.subject,
+    row_number() over (partition by student_grades.subject order by grade desc,student_grades.student_name) as sr_no,
+    rank() over (partition by student_grades.subject order by grade desc,student_grades.student_name) as rankk,
+    dense_rank() over (partition by student_grades.subject order by grade desc,student_grades.student_name) as dense
+from student_grades;
+
+with cte as (
+    select name ,
+           salary ,
+           emp.dept_id ,
+           row_number() over (partition by dept_id order by salary desc) as dept_top3
+    from emp
+) select dept_id , name , salary from cte where dept_top3 <= 2;
+
+-- First insert managers (no mgr_id reference)
+INSERT INTO emp (name, email, mgr_id, dept_id, salary, hire_dt) VALUES
+                                                                    ('John CEO', 'john.ceo@company.com', NULL, 1, 150000.00, '2015-01-01'),
+                                                                    ('Sarah VP Eng', 'sarah.vp@company.com', 1, 1, 120000.00, '2016-03-15'),
+                                                                    ('Mike VP Sales', 'mike.vp@company.com', 1, 2, 120000.00, '2016-06-20'),
+                                                                    ('Lisa VP HR', 'lisa.vp@company.com', 1, 3, 115000.00, '2017-02-10'),
+                                                                    ('David Dir Eng', 'david.dir@company.com', 2, 1, 95000.00, '2017-08-15'),
+                                                                    ('Emma Dir Sales', 'emma.dir@company.com', 3, 2, 95000.00, '2018-01-20'),
+                                                                    ('Robert Dir HR', 'robert.dir@company.com', 4, 3, 90000.00, '2018-05-10');
+
+-- Then insert employees with manager references and LOTS of salary duplicates
+INSERT INTO emp (name, email, mgr_id, dept_id, salary, hire_dt) VALUES
+                                                                    ('Alice Johnson', 'alice.j@company.com', 5, 1, 85000.00, '2019-03-15'),
+                                                                    ('Bob Smith', 'bob.s@company.com', 5, 1, 85000.00, '2019-07-22'),
+                                                                    ('Carol Davis', 'carol.d@company.com', 6, 2, 75000.00, '2020-01-10'),
+                                                                    ('Frank Miller', 'frank.m@company.com', 5, 1, 85000.00, '2019-11-30'),
+                                                                    ('Grace Taylor', 'grace.t@company.com', 7, 3, 65000.00, '2020-08-12'),
+                                                                    ('Henry Anderson', 'henry.a@company.com', 6, 2, 75000.00, '2021-06-18'),
+                                                                    ('Ivy Thomas', 'ivy.t@company.com', 5, 1, 90000.00, '2018-04-03'),
+                                                                    ('Jack Jackson', 'jack.j@company.com', 6, 2, 70000.00, '2020-12-01'),
+                                                                    ('Karen White', 'karen.w@company.com', 6, 2, 75000.00, '2019-03-25'),
+                                                                    ('Liam Harris', 'liam.h@company.com', 7, 3, 65000.00, '2021-09-07'),
+                                                                    ('Mia Clark', 'mia.c@company.com', 5, 1, 85000.00, '2020-05-20'),
+                                                                    ('Noah Lewis', 'noah.l@company.com', 6, 2, 70000.00, '2022-01-15'),
+                                                                    ('Olivia Walker', 'olivia.w@company.com', 6, 2, 75000.00, '2019-10-08'),
+                                                                    ('Paul Hall', 'paul.h@company.com', 5, 1, 90000.00, '2018-12-12'),
+                                                                    ('Quinn Young', 'quinn.y@company.com', 7, 3, 60000.00, '2021-04-22'),
+                                                                    ('Rachel King', 'rachel.k@company.com', 6, 2, 70000.00, '2020-07-14'),
+                                                                    ('Sam Wright', 'sam.w@company.com', 6, 2, 70000.00, '2021-11-03'),
+                                                                    ('Tina Lopez', 'tina.l@company.com', 5, 1, 85000.00, '2019-02-28'),
+                                                                    ('Uma Patel', 'uma.p@company.com', 7, 3, 65000.00, '2020-11-05'),
+                                                                    ('Victor Chen', 'victor.c@company.com', 5, 1, 90000.00, '2021-03-18'),
+                                                                    ('Wendy Kim', 'wendy.k@company.com', 6, 2, 75000.00, '2021-08-22'),
+                                                                    ('Xavier Brown', 'xavier.b@company.com', 7, 3, 60000.00, '2022-02-14'),
+                                                                    ('Yuki Tanaka', 'yuki.t@company.com', 5, 1, 85000.00, '2022-05-30');
+
+INSERT INTO sales_data (sale_date, salesperson_id, product_category, sale_amount, quantity_sold, region) VALUES
+                                                                                                             ('2024-01-15', 1, 'Electronics', 25000.00, 100, 'North'),
+                                                                                                             ('2024-01-16', 2, 'Clothing', 18000.00, 75, 'South'),
+                                                                                                             ('2024-01-17', 3, 'Electronics', 32000.00, 100, 'East'),
+                                                                                                             ('2024-01-18', 1, 'Books', 8000.00, 50, 'North'),
+                                                                                                             ('2024-01-19', 4, 'Electronics', 45000.00, 150, 'West'),
+                                                                                                             ('2024-01-20', 2, 'Clothing', 22000.00, 75, 'South'),
+                                                                                                             ('2024-01-21', 5, 'Books', 12000.00, 50, 'East'),
+                                                                                                             ('2024-01-22', 3, 'Electronics', 38000.00, 100, 'East'),
+                                                                                                             ('2024-01-23', 1, 'Clothing', 16000.00, 75, 'North'),
+                                                                                                             ('2024-01-24', 6, 'Books', 9000.00, 25, 'West'),
+                                                                                                             ('2024-01-25', 4, 'Electronics', 41000.00, 150, 'West'),
+                                                                                                             ('2024-01-26', 2, 'Clothing', 24000.00, 100, 'South'),
+                                                                                                             ('2024-01-27', 5, 'Books', 11000.00, 50, 'East'),
+                                                                                                             ('2024-01-28', 7, 'Electronics', 29000.00, 100, 'North'),
+                                                                                                             ('2024-01-29', 3, 'Clothing', 19000.00, 75, 'East'),
+                                                                                                             ('2024-01-30', 6, 'Books', 13000.00, 25, 'West'),
+                                                                                                             ('2024-01-31', 1, 'Electronics', 35000.00, 150, 'North'),
+                                                                                                             ('2024-02-01', 4, 'Clothing', 21000.00, 75, 'West'),
+                                                                                                             ('2024-02-02', 7, 'Books', 10000.00, 25, 'North'),
+                                                                                                             ('2024-02-03', 2, 'Electronics', 39000.00, 150, 'South'),
+                                                                                                             ('2024-02-04', 5, 'Clothing', 20000.00, 100, 'East'),
+                                                                                                             ('2024-02-05', 3, 'Books', 14000.00, 50, 'East'),
+                                                                                                             ('2024-02-06', 6, 'Electronics', 33000.00, 100, 'West'),
+                                                                                                             ('2024-02-07', 1, 'Clothing', 17000.00, 75, 'North'),
+                                                                                                             ('2024-02-08', 4, 'Books', 12500.00, 25, 'West'),
+                                                                                                             ('2024-02-09', 7, 'Electronics', 31000.00, 150, 'North'),
+                                                                                                             ('2024-02-10', 2, 'Clothing', 23000.00, 100, 'South'),
+                                                                                                             ('2024-02-11', 5, 'Books', 15000.00, 50, 'East'),
+                                                                                                             ('2024-02-12', 3, 'Electronics', 37000.00, 150, 'East'),
+                                                                                                             ('2024-02-13', 6, 'Clothing', 18500.00, 75, 'West');
+
+
+
+INSERT INTO student_grades VALUES
+-- Rows 21-50 (with explicit student_id starting from 21)
+(21, 'Emma Wilson', 'Mathematics', 92.5, '2024-05-15', 'Spring 2024', 3),
+(22, 'Liam Chen', 'Mathematics', 88.0, '2024-05-15', 'Spring 2024', 3),
+(23, 'Sophie Rodriguez', 'Physics', 95.0, '2024-05-20', 'Spring 2024', 4),
+(24, 'Mason Kim', 'Chemistry', 87.5, '2024-05-18', 'Spring 2024', 3),
+(25, 'Ava Patel', 'Mathematics', 92.5, '2024-05-15', 'Spring 2024', 3),      -- Duplicate 92.5
+(26, 'Noah Johnson', 'Physics', 89.5, '2024-05-20', 'Spring 2024', 4),
+(27, 'Isabella Brown', 'Chemistry', 87.5, '2024-05-18', 'Spring 2024', 3),   -- Duplicate 87.5
+(28, 'Ethan Davis', 'Mathematics', 88.0, '2024-05-15', 'Spring 2024', 3),    -- Duplicate 88.0
+(29, 'Mia Garcia', 'Physics', 95.0, '2024-05-20', 'Spring 2024', 4),         -- Duplicate 95.0
+(30, 'James Martinez', 'Biology', 90.0, '2024-05-22', 'Spring 2024', 4),
+(31, 'Charlotte Lee', 'Chemistry', 87.5, '2024-05-18', 'Spring 2024', 3),    -- Duplicate 87.5
+(32, 'Benjamin Taylor', 'Mathematics', 88.0, '2024-05-15', 'Spring 2024', 3),-- Duplicate 88.0
+(33, 'Amelia Anderson', 'Biology', 90.0, '2024-05-22', 'Spring 2024', 4),    -- Duplicate 90.0
+(34, 'Lucas Thompson', 'Physics', 89.5, '2024-05-20', 'Spring 2024', 4),     -- Duplicate 89.5
+(35, 'Harper White', 'Chemistry', 93.0, '2024-05-18', 'Spring 2024', 3),
+(36, 'Alexander Harris', 'Biology', 85.0, '2024-05-22', 'Spring 2024', 4),
+(37, 'Evelyn Clark', 'Mathematics', 92.5, '2024-05-15', 'Spring 2024', 3),   -- Duplicate 92.5
+(38, 'Michael Lewis', 'Physics', 95.0, '2024-05-20', 'Spring 2024', 4),      -- Duplicate 95.0
+(39, 'Abigail Walker', 'Biology', 85.0, '2024-05-22', 'Spring 2024', 4),     -- Duplicate 85.0
+(40, 'William Hall', 'Chemistry', 93.0, '2024-05-18', 'Spring 2024', 3),     -- Duplicate 93.0
+(41, 'Grace Murphy', 'Mathematics', 88.0, '2024-05-15', 'Spring 2024', 3),   -- Duplicate 88.0
+(42, 'Oliver Scott', 'Physics', 89.5, '2024-05-20', 'Spring 2024', 4),       -- Duplicate 89.5
+(43, 'Lily Cooper', 'Chemistry', 87.5, '2024-05-18', 'Spring 2024', 3),      -- Duplicate 87.5
+(44, 'Henry Reed', 'Biology', 90.0, '2024-05-22', 'Spring 2024', 4),         -- Duplicate 90.0
+(45, 'Zoe Bailey', 'Mathematics', 92.5, '2024-05-15', 'Spring 2024', 3),     -- Duplicate 92.5
+(46, 'Jack Foster', 'Physics', 95.0, '2024-05-20', 'Spring 2024', 4),        -- Duplicate 95.0
+(47, 'Maya Hughes', 'Chemistry', 93.0, '2024-05-18', 'Spring 2024', 3),      -- Duplicate 93.0
+(48, 'Ryan Powell', 'Biology', 85.0, '2024-05-22', 'Spring 2024', 4),        -- Duplicate 85.0
+(49, 'Chloe Ward', 'Mathematics', 88.0, '2024-05-15', 'Spring 2024', 3),     -- Duplicate 88.0
+(50, 'Luke Torres', 'Physics', 89.5, '2024-05-20', 'Spring 2024', 4),        -- Duplicate 89.5
+-- Additional 20 rows to make it 50 total
+(51, 'Aria Patel', 'Mathematics', 92.5, '2024-05-15', 'Spring 2024', 3),     -- Duplicate 92.5
+(52, 'Kai Thompson', 'Physics', 95.0, '2024-05-20', 'Spring 2024', 4),       -- Duplicate 95.0
+(53, 'Luna Martinez', 'Chemistry', 87.5, '2024-05-18', 'Spring 2024', 3),    -- Duplicate 87.5
+(54, 'Ezra Johnson', 'Biology', 90.0, '2024-05-22', 'Spring 2024', 4),       -- Duplicate 90.0
+(55, 'Nova Brown', 'Mathematics', 88.0, '2024-05-15', 'Spring 2024', 3),     -- Duplicate 88.0
+(56, 'Phoenix Garcia', 'Physics', 89.5, '2024-05-20', 'Spring 2024', 4),     -- Duplicate 89.5
+(57, 'River Lee', 'Chemistry', 93.0, '2024-05-18', 'Spring 2024', 3),        -- Duplicate 93.0
+(58, 'Sage Wilson', 'Biology', 85.0, '2024-05-22', 'Spring 2024', 4),        -- Duplicate 85.0
+(59, 'Atlas Davis', 'Mathematics', 92.5, '2024-05-15', 'Spring 2024', 3),    -- Duplicate 92.5
+(60, 'Iris Chen', 'Physics', 95.0, '2024-05-20', 'Spring 2024', 4),          -- Duplicate 95.0
+(61, 'Orion Kim', 'Chemistry', 87.5, '2024-05-18', 'Spring 2024', 3),        -- Duplicate 87.5
+(62, 'Wren Anderson', 'Biology', 90.0, '2024-05-22', 'Spring 2024', 4),      -- Duplicate 90.0
+(63, 'Felix Rodriguez', 'Mathematics', 88.0, '2024-05-15', 'Spring 2024', 3),-- Duplicate 88.0
+(64, 'Stella Harris', 'Physics', 89.5, '2024-05-20', 'Spring 2024', 4),      -- Duplicate 89.5
+(65, 'Jasper White', 'Chemistry', 93.0, '2024-05-18', 'Spring 2024', 3),     -- Duplicate 93.0
+(66, 'Hazel Clark', 'Biology', 85.0, '2024-05-22', 'Spring 2024', 4),        -- Duplicate 85.0
+(67, 'Leo Murphy', 'Mathematics', 92.5, '2024-05-15', 'Spring 2024', 3),     -- Duplicate 92.5
+(68, 'Willow Scott', 'Physics', 95.0, '2024-05-20', 'Spring 2024', 4),       -- Duplicate 95.0
+(69, 'Rowan Cooper', 'Chemistry', 87.5, '2024-05-18', 'Spring 2024', 3),     -- Duplicate 87.5
+(70, 'Indigo Reed', 'Biology', 90.0, '2024-05-22', 'Spring 2024', 4);
+
+select customer_id,total_amount from orders;
+
+select orders.customer_id , sum(orders.total_amount) revenue,
+       ntile(1) over (order by sum(orders.total_amount) desc) as revenue_decile
+from orders
+group by customer_id
+order by revenue desc;
+
+select orders.customer_id , sum(orders.total_amount) revenue,
+       ntile(2) over (order by sum(orders.total_amount) desc) as revenue_decile
+from orders
+group by customer_id
+order by revenue desc;
+
+select orders.customer_id , sum(orders.total_amount) revenue,
+       ntile(3) over (order by sum(orders.total_amount) desc) as revenue_decile
+from orders
+group by customer_id
+order by revenue desc;
+
+select orders.customer_id , sum(orders.total_amount) revenue,
+       ntile(7) over (order by sum(orders.total_amount) desc) as revenue_decile
+from orders
+group by customer_id
+order by revenue desc;
+
+select orders.customer_id , sum(orders.total_amount) revenue,
+       ntile(199) over (order by sum(orders.total_amount) desc) as revenue_decile
+from orders
+group by customer_id
+order by revenue desc;
+
+select student_grades.student_name , grade , student_grades.subject,
+       row_number() over (partition by student_grades.subject order by grade desc) as sr_no,
+       rank() over (partition by student_grades.subject order by grade desc) as rankk,
+       dense_rank() over (partition by student_grades.subject order by grade desc) as dense,
+       percent_rank() over (partition by subject order by grade)*100 as percentile,
+       cume_dist() over (partition by subject order by grade desc) as c_dist
+from student_grades
+order by subject,sr_no;
