@@ -1098,3 +1098,108 @@ with cte as (
     from sample_data
 )
 select id , max(sr_no) as total_enteries from cte where sr_no > 1 group by id;
+
+
+-- datetime----------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Clean slate
+DROP TABLE IF EXISTS datetime_playground;
+
+CREATE TABLE datetime_playground (
+id bigserial PRIMARY KEY,
+only_date date, -- calendar date
+only_time_6 time(6), -- time of day, microseconds
+only_timetz_6 time(6) with time zone,-- time with time zone (rarely needed)
+ts_no_tz_6 timestamp(6), -- timestamp without time zone
+ts_tz_6 timestamptz(6), -- timestamp with time zone; stored UTC, displayed per session tz
+dur_interval interval -- duration
+);
+
+COMMENT ON COLUMN datetime_playground.only_timetz_6 IS 'Use with caution; SQL-defined type with limited usefulness in practice.';
+
+
+-- Typical current values
+INSERT INTO datetime_playground
+(only_date, only_time_6, only_timetz_6, ts_no_tz_6, ts_tz_6, dur_interval)
+VALUES
+(CURRENT_DATE, CURRENT_TIME(6), CURRENT_TIME(6), CURRENT_TIMESTAMP(6)::timestamp, CURRENT_TIMESTAMP(6), INTERVAL '1 day 02:03:04.123456');
+
+-- Explicit literals with microseconds
+INSERT INTO datetime_playground
+(only_date, only_time_6, only_timetz_6, ts_no_tz_6, ts_tz_6, dur_interval)
+VALUES
+('2025-08-10', '23:59:59.123456', '23:59:59.123456+05:30', '2025-08-10 23:59:59.123456', '2025-08-10 23:59:59.123456+05:30', INTERVAL '2 months 3 days 04:05:06.789012');
+
+-- Boundary-style examples (wide ranges supported)
+-- Note: timestamp types support very large ranges; shown here with reasonable values
+INSERT INTO datetime_playground
+(only_date, only_time_6, only_timetz_6, ts_no_tz_6, ts_tz_6, dur_interval)
+VALUES
+('0001-01-01', '00:00:00.000001', '00:00:00.000001+00', '0001-01-01 00:00:00.000001', '0001-01-01 00:00:00.000001+00', INTERVAL '-10 years 5 days'),
+('9999-12-31', '23:59:59.999999', '23:59:59.999999-12', '9999-12-31 23:59:59.999999', '9999-12-31 23:59:59.999999-12', INTERVAL '100 years');
+
+-- Time zone behavior: timestamptz stores UTC, shows in session tz
+-- Here we set a literal with offset; value is normalized to UTC internally
+INSERT INTO datetime_playground
+(only_date, only_time_6, only_timetz_6, ts_no_tz_6, ts_tz_6, dur_interval)
+VALUES
+('2027-09-09', '10:09:45.000000', '10:09:45.000000+05:30', '2027-09-09 10:09:45.000000', '2027-09-09 10:09:45.000000+05:30', INTERVAL '90 minutes');
+
+-- Inspect what we inserted
+SELECT id, only_date, only_time_6, only_timetz_6, ts_no_tz_6, ts_tz_6, dur_interval
+FROM datetime_playground
+
+show timezone;
+select current_setting('timezone') as sesstz;
+
+select current_timestamp,
+	now(),
+	localtimestamp,
+	current_date,
+	current_time;
+
+
+select extract(year from now()) as y,
+	extract(month from now()) as m;
+
+select date_trunc('microsecond' , current_timestamp) as mic,
+      DATE_TRUNC('month', CURRENT_TIMESTAMP) AS month_bucket;
+
+
+select current_date + interval '8 days' as plus8;
+SELECT AGE(current_timestamp + interval '26 years 7000 days', current_timestamp - INTERVAL '34 years 4 months 3 days 7 hours 4 minutes 7 seconds 34 milliseconds 100 microseconds') AS agee;
+
+select (timestamp '2027-09-30 23:06:51.979687' at time zone 'Asia/Kolkata') as tz,
+		(timestamp '2027-09-30 23:06:51.979687' at time zone 'utc') as tzz,
+		(timestamptz '2027-09-30 23:06:51.979687+05:30' at time zone 'utc') as tzzz;
+
+
+select generate_series(
+	   current_date - interval '45 years',
+	   current_date,
+	   interval '1 days'
+) as srs;
+
+
+-- Formatting for presentation
+SELECT TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM-DD"T"HH24:MI:SS.USOF') AS iso_8601,
+      TO_CHAR(CURRENT_TIMESTAMP, 'Day, Month DD, YYYY at HH12:MI:SS AM') AS readable_format,
+      TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') AS standard_format,
+      TO_CHAR(CURRENT_TIMESTAMP, 'Mon DD, YYYY') AS short_date,
+      TO_CHAR(CURRENT_TIMESTAMP, 'HH24:MI') AS time_only,
+      TO_CHAR(CURRENT_TIMESTAMP, 'FMMonth FMDD, YYYY') AS no_padding;
+
+
+SELECT TO_TIMESTAMP('2027-09-30 23:06:51', 'YYYY-MM-DD HH24:MI:SS') AS parsed_ts,
+      TO_DATE('2027-09-30', 'YYYY-MM-DD') AS parsed_date,
+      '2027-09-30 23:06:51'::TIMESTAMP AS cast_ts,
+      '2027-09-30T23:06:51+05:30'::TIMESTAMPTZ AS cast_tstz;
+
+
+select extract(epoch from current_timestamp) as tz,
+	   to_timestamp(168764950) as ep,
+	   to_timestamp(45655606.57486) as ep_micro;
+
+
+
+

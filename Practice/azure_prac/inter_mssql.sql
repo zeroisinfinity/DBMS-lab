@@ -1413,3 +1413,149 @@ with cte as (
     from sample_data
 )
 select id , max(sr_no) as total_enteries from cte where sr_no > 1 group by id;
+
+-- datetime--------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Create a single table that holds every SQL Server date/time type
+CREATE TABLE dbo.DateTimePlayground
+(
+    id                int IDENTITY(1,1) PRIMARY KEY,
+    only_date         date,               -- 0001-01-01..9999-12-31 [1]
+    only_time_7       time(7),            -- 100ns units, 0-7 fractional seconds [10][5]
+    legacy_datetime   datetime,           -- legacy, ~3.33ms rounding [3][1][13]
+    modern_dt2_7      datetime2(7),       -- modern, 0-7 fractional seconds [10]
+    with_offset_7     datetimeoffset(7),  -- datetime2 + offset [-14:00..+14:00] [1]
+    small_dt          smalldatetime       -- legacy, minute precision [1]
+);
+-- Insert a “typical” row
+INSERT INTO dbo.DateTimePlayground
+(
+    only_date,
+    only_time_7,
+    legacy_datetime,
+    modern_dt2_7,
+    with_offset_7,
+    small_dt
+)
+VALUES
+(
+    '2024-12-31',                         -- DATE [1]
+    '23:59:59.1234567',                   -- TIME(7) [10][5]
+    '2024-12-31 23:59:59.997',            -- DATETIME max second fraction [3]
+    '2024-12-31 23:59:59.1234567',        -- DATETIME2(7) precise [10]
+    '2024-12-31 23:59:59.1234567 +05:30', -- DATETIMEOFFSET(7) [1]
+    '2024-12-31 23:59'                    -- SMALLDATETIME minute precision [1]
+);
+
+-- Precision/rounding check: DATETIME rounds to 0/3/7 ms; DATETIME2 preserves 7 digits
+INSERT INTO dbo.DateTimePlayground
+(
+    only_date, only_time_7, legacy_datetime, modern_dt2_7, with_offset_7, small_dt
+)
+VALUES
+(
+    '2025-01-01',
+    '00:00:00.0000001',                   -- TIME(7) tiny fraction [10][5]
+    '2025-01-01 00:00:00.001',            -- will round to .000 or .003 or .007 [3][13]
+    '2025-01-01 00:00:00.0000001',        -- DT2 keeps 7-digit precision [10]
+    '2025-01-01 00:00:00.0000001 +00:00', -- offset-aware [1]
+    '2025-01-01 00:00'
+);
+
+-- Edge/offsets: wide offset range supported in DATETIMEOFFSET [-14:00..+14:00]
+-- Edge/offsets: wide offset range supported in DATETIMEOFFSET [-14:00..+14:00]
+INSERT INTO dbo.DateTimePlayground
+(only_date, only_time_7, legacy_datetime, modern_dt2_7, with_offset_7, small_dt)
+VALUES
+('0001-01-01', '12:00:00', '2000-01-01 12:00:00', '0001-01-01 12:00:00.0000000', '2000-01-01 12:00:00.0000000 -14:00', '2000-01-01 12:00'),
+('9999-12-31', '12:00:00', '2020-06-15 08:30:00.123', '9999-12-31 12:00:00.9999999', '2020-06-15 08:30:00.1230000 +14:00', '2020-06-15 08:30');
+INSERT INTO dbo.DateTimePlayground
+(only_date, only_time_7, legacy_datetime, modern_dt2_7, with_offset_7, small_dt)
+VALUES
+-- DATE extremes (min/max), TIME extremes, DATETIME not applicable at 0001 (use DATETIME2 for that)
+('0001-01-01', '00:00:00.0000000', '1753-01-01 00:00:00.000', '0001-01-01 00:00:00.0000000', '0001-01-01 00:00:00.0000000 +00:00', '1900-01-01 00:00'),
+('9999-12-31', '23:59:59.9999999', '9999-12-31 23:59:59.997', '9999-12-31 23:59:59.9999999', '9999-12-31 23:59:59.9999999 +00:00', '2079-06-06 23:59'),
+
+-- DATETIME lower bound and rounding edge checks
+('1753-01-01', '00:00:00.0000000', '1753-01-01 00:00:00.000', '1753-01-01 00:00:00.0000000', '1753-01-01 00:00:00.0000000 +00:00', '1900-01-01 00:00'),
+('2000-01-01', '12:34:56.1234567', '2000-01-01 12:34:56.001', '2000-01-01 12:34:56.0010000', '2000-01-01 12:34:56.0010000 +05:30', '2000-01-01 12:34'),
+('2000-01-01', '12:34:56.1234567', '2000-01-01 12:34:56.002', '2000-01-01 12:34:56.0020000', '2000-01-01 12:34:56.0020000 -04:00', '2000-01-01 12:34'),
+('2000-01-01', '12:34:56.1234567', '2000-01-01 12:34:56.003', '2000-01-01 12:34:56.0030000', '2000-01-01 12:34:56.0030000 +00:00', '2000-01-01 12:34'),
+
+-- DATETIME upper end: max representable fraction is .997
+('9999-12-31', '23:59:59.9999999', '9999-12-31 23:59:59.997', '9999-12-31 23:59:59.9999999', '9999-12-31 23:59:59.9999999 +00:00', '2079-06-06 23:59'),
+
+-- DATETIMEOFFSET offset extremes
+('2000-01-01', '00:00:00.0000000', '2000-01-01 00:00:00.000', '2000-01-01 00:00:00.0000000', '2000-01-01 00:00:00.0000000 -14:00', '2000-01-01 00:00'),
+('2000-01-01', '00:00:00.0000000', '2000-01-01 00:00:00.000', '2000-01-01 00:00:00.0000000', '2000-01-01 00:00:00.0000000 +14:00', '2000-01-01 00:00'),
+
+-- SMALLDATETIME extremes (min and max)
+('1900-01-01', '00:00:00.0000000', '1900-01-01 00:00:00.000', '1900-01-01 00:00:00.0000000', '1900-01-01 00:00:00.0000000 +00:00', '1900-01-01 00:00'),
+('2079-06-06', '23:59:59.9999999', '2079-06-06 23:59:59.997', '2079-06-06 23:59:59.9999999', '2079-06-06 23:59:59.9999999 +00:00', '2079-06-06 23:59');
+SELECT * FROM dbo.DateTimePlayground ORDER BY id;
+
+select GETDATE() as gd ,
+       GETUTCDATE() as utc,
+       SYSDATETIME() sysdt,
+       SYSUTCDATETIME() as sysutc,
+       SYSDATETIMEOFFSET() as offs;
+       
+DECLARE @d DATETIME2(7) = '2027-04-30 5:30:09.8974678';
+select 
+    DATEPART(year,@d) as Y,
+    DATEPART(month,@d) as m,
+    DATEPART(weekday,@d) AS WK,
+    DATEPART(hour,@d) as HR,
+    DATEPART(minute,@d) AS MINN,
+    DATEPART(second,@d) AS S;
+
+DECLARE @start datetime2(7) = '2025-01-01T00:00:00';
+DECLARE @end   datetime2(7) = '2025-08-09T22:36:45.9876543';
+
+select 
+    DATEADD(day,67,@start) as addday,
+    DATEADD(MONTH,55,@end) as addmonth,
+    DATEADD(YEAR,9,@start) as addy,
+    DATEDIFF(DAY,78,@start) as subday,
+    DATEDIFF_BIG(SECOND,@start,@end) as subsec,
+    datediff_big(year,@start,@end) as suby; -- datepart + sub/add
+
+declare @any datetime2(7) = '2028-09-07T08:23:56.9785679';
+select EOMONTH(@any) as eom,
+    EOMONTH(@any,-1) eom_prev,
+    DATEFROMPARTS(2029,09,26) as datee;
+
+-- -- 3.5 ISO 8601 parsing (recommended to avoid regional ambiguity)
+-- Use unambiguous ISO strings: 'YYYY-MM-DDTHH:MM:SS[.fffffff][Z|{+|-}HH:MM]'
+
+select cast('2027-09-30T23:06:51.9796876' as DATETIME2(7)) as casted,
+       cast('2027-09-30T23:06:51+05:30' as datetimeoffset(7)) as casted_offs; 
+
+
+declare @utc DATETIME2(7) = SYSUTCDATETIME();
+select todatetimeoffset(@utc,'+00:00') as utc_offs,
+        SWITCHOFFSET(TODATETIMEOFFSET(@utc,'+00:00'),'+05:30') as indian_time,
+        SWITCHOFFSET(SYSUTCDATETIME(),'+05:30') as indian;
+
+/* 
+112: 'YYYYMMDD'
+
+120: 'YYYY-MM-DD HH:MI:SS' (24h)
+
+121: 'YYYY-MM-DD HH:MI:SS.mmm' (ODBC canonical with ms)
+
+126: 'YYYY-MM-DDTHH:MM:SS.mmm' (ISO8601; for datetime2 use SYSDATETIME then CONVERT)
+*/
+select convert(varchar(35),'2028-09-07T08:23:56.9785679',113) as iso;
+
+
+-- 4.5 Find rows that fall in the last full calendar month
+DECLARE @today date = CAST(SYSDATETIME() AS date);
+DECLARE @start_last_month date = DATEADD(month, DATEDIFF(month, 0, @today) - 1, 0);
+DECLARE @end_last_month   date = EOMONTH(@start_last_month);
+
+SELECT *
+FROM dbo.DateTimePlayground
+WHERE only_date >= @start_last_month
+  AND only_date <= @end_last_month
+ORDER BY only_date; 

@@ -1635,3 +1635,128 @@ SELECT id,
 FROM sample_data
 ORDER BY category, amount DESC;
  */
+
+create table genders(
+    id int primary key auto_increment,
+    gender varchar(1)
+);
+
+insert into genders(gender) values  ('F');
+
+SELECT * from genders;
+select * , row_number() over (partition by genders.gender) as alternate from genders order by alternate;
+with cte as (select * , row_number() over (partition by genders.gender) as alternate from genders )
+    select * from cte order by alternate;
+
+-- datetime---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DROP TABLE IF EXISTS datetime_playground;
+
+CREATE TABLE datetime_playground (
+                                     id               INT AUTO_INCREMENT PRIMARY KEY,
+                                     only_date        DATE,                 -- 1000-01-01..9999-12-31 [1][5]
+                                     only_time_6      TIME(6),              -- -838:59:59..838:59:59 with microseconds [1][5]
+                                     dt_no_tz_6       DATETIME(6),          -- no TZ conversion, microseconds [1][12]
+                                     ts_utc_6         TIMESTAMP(6),         -- UTC stored, TZ conversion on read/write [1][12][6]
+                                     only_year        YEAR,                 -- typically 1901..2155 [1][5]
+                                     created_ts       TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,              -- auto-init [19]
+                                     updated_ts       TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP -- auto-update [19]
+) ENGINE=InnoDB;
+
+-- Typical row
+INSERT INTO datetime_playground
+(only_date, only_time_6, dt_no_tz_6, ts_utc_6, only_year)
+VALUES
+    ('2025-08-09', '23:59:59.123456', '2025-08-09 23:59:59.123456', '2025-08-09 23:59:59.123456', 2025);
+
+-- DATE extremes
+INSERT INTO datetime_playground
+(only_date, only_time_6, dt_no_tz_6, ts_utc_6, only_year)
+VALUES
+    ('1000-01-01', '00:00:00.000000', '1000-01-01 00:00:00.000000', '1970-01-01 00:00:01.000000', 1901),
+    ('9999-12-31', '23:59:59.999999', '9999-12-31 23:59:59.999999', '2038-01-19 03:14:07.999999', 2155);
+
+-- TIME extremes (supports durations)
+INSERT INTO datetime_playground
+(only_date, only_time_6, dt_no_tz_6, ts_utc_6, only_year)
+VALUES
+    ('2024-01-01', '-838:59:59.000000', '2024-01-01 00:00:00.000000', '2024-01-01 00:00:00.000000', 2024),
+    ('2024-01-02',  '838:59:59.999999', '2024-01-02 00:00:00.000000', '2024-01-02 00:00:00.000000', 2024);
+
+-- DATETIME extremes (wide range) and microseconds
+INSERT INTO datetime_playground
+(only_date, only_time_6, dt_no_tz_6, ts_utc_6, only_year)
+VALUES
+    ('1000-01-01', '12:00:00.000001', '1000-01-01 12:00:00.000001', '1973-04-05 06:07:08.000001', 2000),
+    ('9999-12-31', '12:00:00.999999', '9999-12-31 12:00:00.999999', '2030-12-31 23:59:59.999999', 2099);
+
+-- TIMESTAMP boundary examples (range is 1970-01-01..2038-01-19)
+INSERT INTO datetime_playground
+(only_date, only_time_6, dt_no_tz_6, ts_utc_6, only_year)
+VALUES
+    ('1970-01-01', '00:00:01.000000', '1970-01-01 00:00:01.000000', '1970-01-01 00:00:01.000000', 1970),
+    ('2038-01-19', '03:14:07.999999', '2038-01-19 03:14:07.999999', '2038-01-19 03:14:07.999999', 2038);
+
+-- Offset literals (8.0.19+): DATETIME stores as-is; TIMESTAMP converts to UTC
+-- Example: IST +05:30 and Pacific -07:00
+INSERT INTO datetime_playground
+(only_date, only_time_6, dt_no_tz_6, ts_utc_6, only_year)
+VALUES
+    ('2025-08-09', '05:30:00.000000',
+     '2025-08-09 10:00:00+05:30',  -- stored as local value; no conversion
+     '2025-08-09 10:00:00+05:30',  -- converted to UTC on storage/retrieval
+     2025),
+    ('2025-08-09', '07:00:00.000000',
+     '2025-08-09 10:00:00-07:00',
+     '2025-08-09 10:00:00-07:00',
+     2025);
+
+select * from datetime_playground;
+
+select now() as abhi,
+       curdate() as aaj,
+       curtime() as rn,
+       current_date as aajj,
+       current_time rnn,
+       current_timestamp() as justnow,
+       current_timestamp(6) as justnow6;
+
+select extract(year from now()) as rn,
+       month(now()) as mahina,
+       year(curdate()) as aaj,
+       second(current_timestamp()) as jusnow,
+       date_format(now(),'%Y-%M-%D %H:%i:%S') AS form;
+
+select date_add(now(),interval 78 day) as add_days,
+       date_add(now(),interval 4677755 second) as addsec,
+       date_sub(now(),interval 89 day) as diffdays,
+       timestampdiff(second,'2025-09-07',curdate()) as stampdiff,
+       timestampadd(second,3600*24,now()) as add1dayy;
+
+select str_to_date('10/08/2025 10:39:34','%d/%m/%Y %H:%i:%s') as strdate,
+       date_format('2027-09-09 10:09:45','%a %b %d %Y %r') as pretty; -- 'Y' AND 'H' should be capital;
+
+SELECT
+    DATE_FORMAT(dt_no_tz_6, '%Y-%m-%d %H:00:00') AS hour_bucket, COUNT(*) AS cnt
+FROM datetime_playground
+GROUP BY DATE_FORMAT(dt_no_tz_6, '%Y-%m-%d %H:00:00')
+ORDER BY hour_bucket;
+
+SELECT
+    DATE(ts_utc_6) AS day_bucket, COUNT(*) AS cnt
+FROM datetime_playground
+GROUP BY DATE(ts_utc_6)
+ORDER BY day_bucket;
+
+select @@time_zone as session_tz;
+/*SELECT @@time_zone, @@system_time_zone;
+select '2027-09-09 10:09:45' as input_literal,
+        cast('2027-09-09 10:09:45+05:30' as datetime(6)) as datetime_used,
+        cast(convert_tz('2027-09-09 10:09:45+05:30',@@session.time_zone) as timestamp()) as timestamp_used;
+
+select version();
+
+SELECT '2027-09-09 10:09:45' AS input_literal,
+       CAST('2027-09-09 10:09:45' AS DATETIME(6)) AS datetime_used,
+       CAST(convert_tz('2027-09-09 10:09:45',@@session.time_zone) AS TIMESTAMP(6)) AS timestamp_used;*/
+
