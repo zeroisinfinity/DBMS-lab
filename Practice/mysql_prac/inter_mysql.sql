@@ -1773,12 +1773,49 @@ select concat('m',' ','y',' ','s',' ','q',' ','l') as mysql,
        rtrim('               i want some space  ') rightt,
        ltrim('                   i want some space too           ') nah,
        repeat(' hows the josh..high sir ',5) as hurrah,
+       replace('this to that','that','this') as this_that,
        cast('123' as unsigned ) as unsg,
        cast(123 as char) as ch,
        convert('345',unsigned) as hmm,
        locate('u','where the tf are u?') as here,
        instr('find me','me') as seek;
 
+-- All databases
+SELECT LEFT('Hello World', 3);  -- Returns: 'Hel'
+-- All databases
+SELECT RIGHT('Hello World', 5);  -- Returns: 'Hel'
+/*
+ -- Extract area code from phone number
+SELECT
+    name,
+    LEFT(phone, 3) AS area_code,
+    RIGHT(phone, 4) AS last_four
+FROM customers
+WHERE phone IS NOT NULL;
+
+-- Get file extension
+SELECT
+    filename,
+    RIGHT(filename, 3) AS extension
+FROM documents
+WHERE filename LIKE '%.%';
+
+-- Extract initials
+SELECT
+    name,
+    LEFT(first_name, 1) + LEFT(last_name, 1) AS initials
+FROM employees;
+ */
+-- edge cases
+SELECT LEFT('Hi', 10);   -- Returns: 'Hi' (doesn't error)
+SELECT RIGHT('Hi', 10);  -- Returns: 'Hi' (doesn't error)
+
+-- Zero or negative length:
+SELECT LEFT('Hello', 0);   -- Returns: '' (empty string)
+SELECT LEFT('Hello', -1);  -- Returns: '' (empty string)
+-- NULL handling:
+SELECT LEFT(NULL, 5);      -- Returns: NULL
+SELECT RIGHT('Hello', NULL); -- Returns: NULL
 -- For ASCII characters - they return the same value
 SELECT LENGTH('Hello World');           -- Result: 11 (bytes)
 SELECT CHAR_LENGTH('Hello World');      -- Result: 11 (characters)
@@ -1813,4 +1850,558 @@ FROM posts;
 
 */
 
+-- join alternative using subquery + correlation----------------------------------------------------------------------------------------------------------
 
+select * from customers where customer_id in (
+    select customer_id from orders
+    ); -- subquery  -- exec - 1st)inner then 2nd outer -- THUS THESE ARE INDEPENDENT QUERIES STUFFED TOGETHER
+
+select * from customers where customer_id not in (
+    select customer_id from orders
+);
+
+select * from customers where exists(
+    select * from orders where customers.customer_id = orders.customer_id
+); -- correlation -- 1st outer then goes inner -- thus  it's not INDEPENDENT IT(RESULT) HAS TO GO SOMEWHERE(INNER)
+-- Correlation in SQL refers to correlated subqueries -
+   -- inner queries that reference columns from the outer query.
+   -- The inner query is executed once for each row of the outer query.
+
+-- CORRELATION --------------------------------------------------------------------------------------------------------------------------
+
+-- syntax basic
+-- General syntax
+/*SELECT columns
+FROM table1 t1
+WHERE condition AND (
+    SELECT columns
+    FROM table2 t2
+    WHERE t2.column = t1.column  -- This creates correlation
+    );*/
+
+select orders.customer_id , order_date from orders
+    where customer_id > 3 and (
+        select customer_id from customers
+                           where orders.customer_id = customers.customer_id
+        );
+
+select orders.order_date from orders where exists(
+    select * from people where last_name = 'k'
+); -- EXISTS is a logical operator that tests whether a subquery returns any rows.
+   -- It returns TRUE if the subquery contains any rows, FALSE otherwise.
+
+
+SELECT emp_id, name, dept_id
+FROM emp e
+WHERE EXISTS (
+    SELECT 1
+    FROM departments d
+    WHERE d.department_id = e.dept_id
+);
+
+SELECT emp_id, name, dept_id
+FROM emp e
+WHERE not EXISTS (
+    SELECT 1
+    FROM departments d
+    WHERE d.department_id = e.dept_id
+);
+
+select orders.order_date
+from orders
+where not exists(select *
+                 from people
+                 where last_name = 'k');
+-- not EXISTS is a logical operator that tests whether a subquery returns any rows.
+-- It returns FALSE if the subquery contains any rows, TRUE otherwise.
+
+-- EXISTS (usually fastest for large datasets)
+SELECT customer_id, customer_name
+FROM customers c
+WHERE EXISTS (
+    SELECT 1 FROM orders o WHERE o.customer_id = c.customer_id
+);
+
+-- IN (can be slower with large subquery results)
+SELECT customer_id, customer_name
+FROM customers c
+WHERE customer_id IN (
+    SELECT DISTINCT customer_id FROM orders
+);
+
+-- JOIN (good for retrieving additional columns)
+SELECT DISTINCT c.customer_id, c.customer_name
+FROM customers c
+         INNER JOIN orders o ON c.customer_id = o.customer_id;
+
+-- Use indexes on correlated columns
+CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+CREATE INDEX idx_employees_dept_id ON employees(department_id);
+
+-- Prefer EXISTS over IN for better performance
+-- Good
+-- WHERE EXISTS (SELECT 1 FROM orders WHERE customer_id = c.customer_id);
+
+-- Less efficient
+-- WHERE customer_id IN (SELECT customer_id FROM orders);
+
+-- Use covering indexes when possible
+CREATE INDEX idx_orders_cover ON orders(customer_id, order_date, total_amount);
+
+SELEct * from emp;
+
+delete from emp e where exists(
+    select 1 from employees e2 where year(e.hire_dt) < cast('2019' as year )
+                         and e2.salary > e.salary);
+
+-- contraints -----------------------------primary key---------not null----------unique----------------default--------composite pk--------contraint keyword--------------------------------
+
+-- TABLE 1 -------------------------------------------------------------------------------------------------------------------------
+create table test_const(
+    stud_id int primary key auto_increment,
+    name varchar(30) not null,
+    email varchar(320) unique not null,
+    category varchar(10) default 'General'
+);
+-- TABLE 1---------------------------------------------------------------------------------------------------------------
+
+-- TESTS -------------------------------------------------------------------------------------------------------------------------------------------------
+-- MySQL Insertion Tests for test_const table
+-- Table structure:
+-- stud_id: INT PRIMARY KEY AUTO_INCREMENT
+-- name: VARCHAR(30) NOT NULL
+-- email: VARCHAR(320) UNIQUE NOT NULL
+-- category: VARCHAR(10) DEFAULT 'General'
+
+-- ========================================
+-- ✅ VALID INSERTIONS (WILL SUCCEED)
+-- ========================================
+
+-- Test 1: Basic valid insertion with all fields ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('John Doe', 'john.doe@example.com', 'Premium');
+
+-- Test 2: Valid insertion using default category ✅
+INSERT INTO test_const (name, email)
+VALUES ('Jane Smith', 'jane.smith@gmail.com');
+
+-- Test 3: Valid insertion with maximum length name (30 characters) ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('Christopher Alexander John', 'chris.johnson@university.edu', 'Student');
+
+-- Test 4: Valid insertion with long email (under 320 chars) ✅
+INSERT INTO test_const (name, email)
+VALUES ('Bob Wilson', 'very.long.email.address.for.testing.maximum.length.constraints.in.database@example.com');
+
+-- Test 5: Valid insertion with minimum length fields ✅
+INSERT INTO test_const (name, email)
+VALUES ('A', 'a@b.co');
+
+-- Test 6: Valid insertion with special characters in name ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('María José O''Connor-Smith', 'maria.jose@international.org', 'VIP');
+
+-- Test 7: Valid insertion with plus sign in email ✅
+INSERT INTO test_const (name, email)
+VALUES ('Test User', 'user+tag@example.com');
+
+-- Test 8: Valid insertion with numbers in name ✅
+INSERT INTO test_const (name, email)
+VALUES ('User123', 'user123@test.com');
+
+-- Test 9: Valid insertion with category exactly 10 characters ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('Max Category', 'max.cat@test.com', 'Enterprise');
+
+-- Test 10: Valid insertion with single character category ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('Min Category', 'min.cat@test.com', 'A');
+
+-- Test 11: Name at exact 30 character limit ✅
+INSERT INTO test_const (name, email)
+VALUES ('Maximilian Bartholomew Jones1', 'max.bart@example.com');
+
+-- Test 12: Email with subdomain and long TLD ✅
+INSERT INTO test_const (name, email)
+VALUES ('Domain Test', 'user@mail.subdomain.example.museum');
+
+-- Test 13: Category at exact 10 character limit ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('Boundary Test', 'boundary@test.com', '1234567890');
+
+-- Test 14: Explicit NULL for category (will use default 'General') ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('Default Test', 'default@test.com', NULL);
+
+-- Test 15: Empty string for category ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('Empty Cat', 'empty.cat@test.com', '');
+
+-- Test 16: International domain name ✅
+INSERT INTO test_const (name, email)
+VALUES ('International', 'user@example.org');
+
+-- Test 17: Very short but valid email ✅
+INSERT INTO test_const (name, email)
+VALUES ('Short Email', 'x@y.co');
+
+-- Test 18: Category with spaces ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('Space Category', 'space.cat@test.com', 'VIP Guest');
+
+-- Test 19: Explicit stud_id (works but not recommended) ✅
+INSERT INTO test_const (stud_id, name, email)
+VALUES (1000, 'Explicit ID', 'explicit.id@test.com');
+
+-- Test 20: Multiple valid records in single statement ✅
+INSERT INTO test_const (name, email, category) VALUES
+                                                   ('Batch User 1', 'batch1@test.com', 'Standard'),
+                                                   ('Batch User 2', 'batch2@test.com', 'Premium'),
+                                                   ('Batch User 3', 'batch3@test.com', 'Basic');
+
+-- ========================================
+-- ❌ INVALID INSERTIONS (WILL FAIL)
+-- ========================================
+
+-- Test 21: NULL name violation ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES (NULL, 'null.name@test.com');
+
+-- Test 22: NULL email violation ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('Null Email', NULL);
+
+-- Test 23: Duplicate email violation ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('Duplicate Email', 'john.doe@example.com');
+
+-- Test 24: Name too long (31 characters) ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('Christopher Alexander Johnson Jr', 'toolong.name@test.com');
+
+-- Test 25: Email too long (over 320 characters) ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('Long Email Test', 'this.email.address.is.intentionally.very.long.to.test.the.maximum.length.constraint.and.should.fail.because.it.exceeds.the.three.hundred.twenty.character.limit.that.was.set.in.the.table.definition.for.the.email.field.which.should.cause.a.constraint.violation.error.and.this.makes.it.even.longer@example.com');
+
+-- Test 26: Category too long (11 characters) ❌
+-- INSERT INTO test_const (name, email, category)
+-- VALUES ('Long Category', 'long.cat@test.com', 'TooLongCat1');
+
+-- Test 27: Empty name string (fails NOT NULL constraint) ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('', 'empty.name@test.com');
+
+-- Test 28: Empty email string (fails NOT NULL constraint) ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('Empty Email', '');
+
+-- Test 29: Name with only spaces (fails NOT NULL in practice) ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('   ', 'spaces.name@test.com');
+
+-- Test 30: Email with only spaces (fails NOT NULL in practice) ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('Spaces Email', '   ');
+
+-- Test 31: Invalid email format (no @ symbol) ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('Invalid Email', 'notanemail.com');
+
+-- Test 32: Batch with one invalid record (entire batch fails) ❌
+-- INSERT INTO test_const (name, email, category) VALUES
+--     ('Valid User', 'valid.batch@test.com', 'Standard'),
+--     (NULL, 'invalid.batch@test.com', 'Premium');
+
+-- Test 33: Negative stud_id (may fail depending on AUTO_INCREMENT settings) ❌
+-- INSERT INTO test_const (stud_id, name, email)
+-- VALUES (-1, 'Negative ID', 'negative.id@test.com');
+
+-- Test 34: Zero stud_id (may fail depending on AUTO_INCREMENT settings) ❌
+-- INSERT INTO test_const (stud_id, name, email)
+-- VALUES (0, 'Zero ID', 'zero.id@test.com');
+
+-- TESTS -------------------------------------------------------------------------------------------------------------------------------------
+
+-- TABLE 2 -----------------------------------------------------------------------------------------------------------------------------
+
+create table test_composite(
+                           stud_id int auto_increment,
+                           seat_no int ,
+                           name varchar(30) not null,
+                           email varchar(320) unique not null,
+                           category varchar(10) default 'General',
+                           primary key (stud_id,seat_no)
+);
+
+--  TABLE 3 -----------------------------------------------------------------------------------------------------------------------------
+
+create table test_explicit(
+                               stud_id int auto_increment,
+                               name varchar(30) not null,
+                               email varchar(320) unique not null,
+                               category varchar(10) default 'General',
+                               constraint pk_id primary key(stud_id)
+);
+
+-- TABLE 4 -----------------------------------------------------------------------------------------------------------------------------------------------
+
+create table test_alterr(
+    emp_id int
+);
+
+alter table test_alterr add primary key(emp_id);
+desc test_alterr;
+alter table test_alterr drop primary key ;
+desc test_alterr;
+
+create table test_ghost(
+                              stud_id int auto_increment,
+                              constraint pk_id primary key(stud_id),
+                              name varchar(30) not null primary key , -- purposely sabotaging the definition
+                              email varchar(320) unique not null,
+                              category varchar(10) default 'General'
+);
+create table exorcism(
+                           stud_id int auto_increment,
+                           constraint pk_id primary key(stud_id),
+                           name varchar(30) not null , -- no error
+                           email varchar(320) unique not null,
+                           category varchar(10) default 'General'
+);
+
+/*
+ MySQL Philosophy:
+
+Simplicity first
+Table-level isolation
+Less system overhead
+
+SQL Server Philosophy:
+
+Enterprise features (more complex catalog system)
+Stronger consistency checks (sometimes too strong!)
+Global constraint tracking (causes ghost issues)
+ */
+
+ -- FOREIGN KEYS ------------------------------------------ LAST TOPIC --------------------------------------------------------------------------------------------------------------------------
+create table harley_davidson(
+        bike_id int primary key auto_increment
+);
+
+CREATE TABLE automobiles(
+    car_id int primary key auto_increment,
+    bike_id int,
+    foreign key (bike_id) references harley_davidson(bike_id)
+);
+
+
+create table planes(
+    plane_id int auto_increment,
+    constraint p_id primary key(plane_id),
+    car_id int,
+    constraint car foreign key (car_id) references automobiles(car_id)
+);
+
+create table traffic(
+    plane_id int,
+    car_id int,
+    bike_id int,
+    constraint plane2 foreign key (plane_id) references planes(plane_id),
+    constraint car2 foreign key (car_id) references automobiles(car_id),
+    constraint bike2 foreign key (bike_id) references harley_davidson(bike_id) -- no duplicates
+);
+
+create table del_null_update(
+                        plane_id int,
+                        car_id int,
+                        bike_id int,
+                        constraint plane3 foreign key (plane_id) references planes(plane_id)
+                            on delete set null
+                            on update cascade ,
+                        constraint car3 foreign key (car_id) references automobiles(car_id)
+                            on delete restrict
+                            on update restrict ,
+                        constraint bike3 foreign key (bike_id) references harley_davidson(bike_id)
+                            on delete no action
+                            on update no action -- no duplicates
+);
+
+
+create table cascade_default
+(
+    plane_id int,
+    car_id   int,
+    bike_id  int,
+    constraint plane23 foreign key (plane_id) references planes (plane_id)
+        on delete cascade
+        on update set null );
+
+/*
+ **🎯 Ah! You want to know the different CASCADE options for DELETE and UPDATE!**
+
+## **🗑️ ON DELETE Options:**
+
+**SET NULL** 📍
+```sql
+ON DELETE SET NULL
+-- Parent deleted → Child FK becomes NULL
+-- Employee keeps job, just loses department/manager
+```
+
+**CASCADE** 🌊
+```sql
+ON DELETE CASCADE
+-- Parent deleted → Child record deleted too
+-- Department deleted → All employees in it deleted!
+```
+
+**RESTRICT** 🛑
+```sql
+ON DELETE RESTRICT
+-- Cannot delete parent if children exist
+-- Must delete all employees before deleting department
+```
+
+**SET DEFAULT** 🔄
+```sql
+ON DELETE SET DEFAULT
+-- Parent deleted → Child FK becomes default value
+-- Must have DEFAULT constraint on FK column
+```
+
+**NO ACTION** 🚫
+```sql
+ON DELETE NO ACTION
+-- Same as RESTRICT (default behavior)
+-- Prevents deletion if children exist
+```
+
+## **📝 ON UPDATE Options:**
+
+**CASCADE** 🌊
+```sql
+ON UPDATE CASCADE
+-- Parent PK updated → Child FK updated automatically
+-- Department ID 5→10, all employee dept_ids change 5→10
+```
+
+**SET NULL** 📍
+```sql
+ON UPDATE SET NULL
+-- Parent PK updated → Child FK becomes NULL
+-- Rarely used, breaks relationships
+```
+
+**RESTRICT** 🛑
+```sql
+ON UPDATE RESTRICT
+-- Cannot update parent PK if children reference it
+-- Must update children first
+```
+
+**SET DEFAULT** 🔄
+```sql
+ON UPDATE SET DEFAULT
+-- Parent PK updated → Child FK becomes default value
+```
+
+**NO ACTION** 🚫
+```sql
+ON UPDATE NO ACTION
+-- Same as RESTRICT (default behavior)
+```
+
+## **🎭 Real Examples:**
+
+**Aggressive CASCADE:**
+```sql
+CONSTRAINT fk_emp_dept FOREIGN KEY (dept_id)
+REFERENCES departments(dept_id)
+ON DELETE CASCADE        -- 💥 Delete dept → Delete all employees
+ON UPDATE CASCADE;       -- 🔄 Change dept ID → Update all employees
+```
+
+**Conservative RESTRICT:**
+```sql
+CONSTRAINT fk_emp_dept FOREIGN KEY (dept_id)
+REFERENCES departments(dept_id)
+ON DELETE RESTRICT       -- 🛑 Cannot delete dept with employees
+ON UPDATE RESTRICT;      -- 🛑 Cannot change dept ID with employees
+```
+
+**Flexible SET NULL:**
+```sql
+CONSTRAINT fk_emp_dept FOREIGN KEY (dept_id)
+REFERENCES departments(dept_id)
+ON DELETE SET NULL       -- 📍 Delete dept → employees become dept-less
+ON UPDATE CASCADE;       -- 🔄 Change dept ID → update employees
+```
+
+**With DEFAULT:**
+```sql
+-- Column needs DEFAULT first
+dept_id INT DEFAULT 1,
+CONSTRAINT fk_emp_dept FOREIGN KEY (dept_id)
+REFERENCES departments(dept_id)
+ON DELETE SET DEFAULT    -- 🔄 Delete dept → employees go to dept 1
+ON UPDATE CASCADE;
+```
+
+## **🎯 Your Original Choice Analysis:**
+
+```sql
+ON DELETE SET NULL ON UPDATE CASCADE  -- 👍 Great choice!
+```
+
+**Why it's smart:**
+- **DELETE SET NULL**: Employees survive department/manager changes 👥
+- **UPDATE CASCADE**: IDs stay synchronized automatically 🔄
+- **Balanced**: Not too aggressive, not too restrictive ⚖️
+
+**💡 This gives you organizational flexibility while maintaining data integrity!** ✨
+ */
+-- mysql 9+ inline syntax
+/*
+ -- Inline foreign key constraint (MySQL 9.0+)
+CREATE TABLE orders (
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL REFERENCES customers(customer_id),
+    product_id INT REFERENCES products(product_id) ON DELETE CASCADE,
+    order_date DATE DEFAULT (CURRENT_DATE)
+);
+
+-- Multiple inline constraints
+CREATE TABLE employee_projects (
+    assignment_id INT AUTO_INCREMENT PRIMARY KEY,
+    emp_id INT NOT NULL REFERENCES employees(emp_id) ON DELETE CASCADE,
+    project_id INT NOT NULL REFERENCES projects(project_id) ON UPDATE CASCADE,
+    assigned_date DATE DEFAULT (CURRENT_DATE),
+    role VARCHAR(50) DEFAULT 'Developer'
+);
+ */
+
+-- CHECK ---------------------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE productss (
+                          product_id INT AUTO_INCREMENT PRIMARY KEY,
+                          product_name VARCHAR(100),
+                          price DECIMAL(10,2),
+                          discount_percent DECIMAL(5,2),
+                          CONSTRAINT chk_price_positive CHECK (price > 0),
+                          CONSTRAINT chk_discount_range CHECK (discount_percent >= 0 AND discount_percent <= 100),
+                          CONSTRAINT chk_discounted_price CHECK (price * (1 - discount_percent/100) > 0)
+);
+
+-- unique -----------------------------------------------------------------------------------------------------------------------------------
+CREATE TABLE userss (
+                       user_id INT AUTO_INCREMENT PRIMARY KEY,
+                       username VARCHAR(50) UNIQUE,
+                       email VARCHAR(100) UNIQUE
+);
+
+-- Add unique constraint
+ALTER TABLE userss ADD UNIQUE (email);
+ALTER TABLE userss ADD CONSTRAINT uk_username UNIQUE (username);
+
+-- Drop unique constraint
+ALTER TABLE userss DROP INDEX uk_username; -- created index

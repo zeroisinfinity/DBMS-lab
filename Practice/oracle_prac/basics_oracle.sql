@@ -140,7 +140,7 @@ SELECT q'[They''ve responded, "We found this tutorial helpful"]' FROM dual;
 -- Case-insensitive search options
 SELECT * FROM AI_MODELS WHERE UPPER(NAME) LIKE UPPER('%n%');
 -- Or use REGEXP_LIKE for more complex patterns
-SELECT * FROM AI_MODELS WHERE REGEXP_LIKE(NAME, 'n', 'i'); '
+SELECT * FROM AI_MODELS WHERE REGEXP_LIKE(NAME, 'n', 'i'); 
 
 -- Temporary computed columns
 SELECT ai_id, name, parameters, parameters*1000 AS param FROM AI_models;
@@ -753,7 +753,7 @@ FOR EACH ROW
 BEGIN
     SELECT sales_data_seq.NEXTVAL INTO :new.sale_id FROM dual;
 END;
-/
+
 
 CREATE TABLE student_grades (
     student_id NUMBER PRIMARY KEY,
@@ -940,7 +940,6 @@ EXCEPTION
          RAISE;
       END IF;
 END;
-/
 
 -- Create a single table that holds equivalent Oracle date/time types
 CREATE TABLE DateTimePlayground_Ora
@@ -1016,7 +1015,7 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Minute: ' || EXTRACT(MINUTE FROM v_dt));
     DBMS_OUTPUT.PUT_LINE('Second: ' || EXTRACT(SECOND FROM v_dt));
 END;
-/
+
 
 -- Date arithmetic
 DECLARE 
@@ -1034,7 +1033,7 @@ BEGIN
          EXTRACT(SECOND FROM (v_end - v_start)))
     );
 END;
-/
+
 
 -- Month-end and date construction
 DECLARE
@@ -1044,7 +1043,7 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('End of previous month: ' || TO_CHAR(LAST_DAY(ADD_MONTHS(v_any, -1)), 'YYYY-MM-DD'));
     DBMS_OUTPUT.PUT_LINE('Date from parts: ' || TO_CHAR(TO_DATE('2029-09-26', 'YYYY-MM-DD'), 'YYYY-MM-DD'));
 END;
-/
+
 
 -- Casting from ISO 8601 strings
 select 
@@ -1059,9 +1058,478 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('UTC as offset: ' || TO_CHAR(FROM_TZ(v_utc, '+00:00'), 'YYYY-MM-DD HH24:MI:SS.FF7 TZH:TZM'));
     DBMS_OUTPUT.PUT_LINE('Indian time: ' || TO_CHAR(FROM_TZ(v_utc, '+00:00') AT TIME ZONE '+05:30', 'YYYY-MM-DD HH24:MI:SS.FF7 TZH:TZM'));
 END;
-/
+
 
 -- Formatting to strings
 select 
     TO_CHAR(TO_TIMESTAMP('2028-09-07 08:23:56.9785679', 'YYYY-MM-DD HH24:MI:SS.FF7'), 'DD Mon YYYY HH:MI:SS AM') as formatted_str
 from dual;
+
+-- STRING / SERVER FUNCTIONS - ORACLE COMPATIBLE
+-- ==============================================
+
+SELECT CONCAT('m', CONCAT(' ', CONCAT('y', CONCAT(' ', CONCAT('s', CONCAT(' ', CONCAT('q', CONCAT(' ', 'l')))))))) AS mysql,
+       SUBSTR('mysql mssql postgres', 8, 4) AS idk,
+       UPPER('i_feel_low') AS no_u_dont,
+       LOWER('i''m high asf') AS nah,
+       LENGTHB('not so entitled') AS lessee, -- byte length
+       LENGTH('1234567 89') AS blank_space_myversion, -- character length
+       TRIM(BOTH ' ' FROM '   claustrophobia   ') AS sry_not_sry,
+       RTRIM('               i want some space  ') AS rightt,
+       LTRIM('                   i want some space too           ') AS nah_left,
+       RPAD(' hows the josh..high sir ', LENGTH(' hows the josh..high sir ') * 5, ' hows the josh..high sir ') AS hurrah,
+       CAST('123' AS NUMBER) AS unsg,
+       CAST(123 AS CHAR(3)) AS ch,
+       TO_NUMBER('345') AS hmm,
+       INSTR('where the tf are u?', 'u') AS here
+FROM DUAL;
+
+-- LENGTH vs LENGTHB examples
+SELECT LENGTH('Hello World') AS char_length,              -- Result: 11 (characters)
+       LENGTHB('Hello World') AS byte_length               -- Result: 11 (bytes)
+FROM DUAL;
+
+-- For multibyte characters - they differ significantly
+SELECT LENGTH('Hello 世界') AS char_length,               -- Result: 8 (characters)
+       LENGTHB('Hello 世界') AS byte_length                -- Result: 13 (bytes)
+FROM DUAL;
+
+-- More examples with different encodings
+SELECT LENGTH('café') AS char_length,                     -- Result: 4 (characters)
+       LENGTHB('café') AS byte_length                      -- Result: 5 (bytes - é takes 2 bytes in UTF-8)
+FROM DUAL;
+
+SELECT LENGTH('🚀📱💻') AS char_length,                   -- Result: 3 (characters)
+       LENGTHB('🚀📱💻') AS byte_length                    -- Result: 12 (bytes - each emoji is 4 bytes)
+FROM DUAL;
+
+-- Using NVARCHAR2 for Unicode support in Oracle
+SELECT LENGTH(N'Hello 世界') AS char_length,              -- Result: 8 (characters)
+       LENGTHB(N'Hello 世界') AS byte_length               -- Result: 16 (bytes - Unicode uses 2 bytes per char)
+FROM DUAL;
+
+SELECT LENGTH(N'🚀📱💻') AS char_length,                  -- Result: 3 or 6 (depending on Unicode handling)
+       LENGTHB(N'🚀📱💻') AS byte_length                   -- Result: 12 (bytes)
+FROM DUAL;
+
+-- LEFT and RIGHT functions equivalents in Oracle
+SELECT SUBSTR('Hello World', 1, 3) AS left_equivalent,  -- Returns: 'Hel' (equivalent to LEFT)
+       SUBSTR('Hello World', -5) AS right_equivalent     -- Returns: 'World' (equivalent to RIGHT)
+FROM DUAL;
+
+-- More RIGHT function examples using SUBSTR with negative position
+SELECT SUBSTR('Hello World', -5, 5) AS right_5,         -- Returns: 'World'
+       SUBSTR('Hello World', -3, 3) AS right_3          -- Returns: 'rld'
+FROM DUAL;
+
+-- Practical examples converted to Oracle
+
+-- Extract area code from phone number
+SELECT
+    name,
+    SUBSTR(phone, 1, 3) AS area_code,
+    SUBSTR(phone, -4, 4) AS last_four
+FROM customers
+WHERE phone IS NOT NULL;
+
+-- Get file extension
+SELECT
+    filename,
+    SUBSTR(filename, -3, 3) AS extension
+FROM documents
+WHERE filename LIKE '%.%';
+
+-- Extract initials
+SELECT
+    name,
+    SUBSTR(first_name, 1, 1) || SUBSTR(last_name, 1, 1) AS initials
+FROM employees;
+
+
+-- Edge cases in Oracle
+SELECT SUBSTR('Hi', 1, 10) AS left_long,   -- Returns: 'Hi' (doesn't error)
+       SUBSTR('Hi', -10, 10) AS right_long  -- Returns: 'Hi' (doesn't error)
+FROM DUAL;
+
+-- Zero or negative length in Oracle
+SELECT SUBSTR('Hello', 1, 0) AS zero_length,   -- Returns: NULL (empty in Oracle)
+       SUBSTR('Hello', 1, -1) AS neg_length     -- Returns: NULL
+FROM DUAL;
+
+-- NULL handling in Oracle
+SELECT SUBSTR(NULL, 1, 5) AS left_null,        -- Returns: NULL
+       SUBSTR('Hello', NULL, 3) AS pos_null     -- Returns: NULL
+FROM DUAL;
+
+-- NULL HANDLING
+-- =============
+-- Oracle equivalent of ISNULL
+-- SELECT name, NVL(column_name, 'no') FROM emp; -- handling null values
+
+-- EXISTS/NOT EXISTS - CORRELATION
+-- ===============================
+
+-- Basic syntax remains same in Oracle
+/*
+SELECT columns
+FROM table1 t1
+WHERE condition AND EXISTS (
+    SELECT columns
+    FROM table2 t2
+    WHERE t2.column = t1.column  -- This creates correlation
+);
+*/
+
+SELECT orders.customer_id, order_date 
+FROM orders
+WHERE customer_id > 3 
+  AND EXISTS (
+        SELECT customer_id 
+        FROM customers
+        WHERE orders.customer_id = customers.customer_id
+      );
+
+SELECT orders.order_date 
+FROM orders 
+WHERE EXISTS (
+    SELECT 1 
+    FROM people 
+    WHERE last_name = 'k'
+);
+
+SELECT emp_id, name, dept_id
+FROM emp e
+WHERE EXISTS (
+    SELECT 1
+    FROM departments d
+    WHERE d.department_id = e.dept_id
+);
+
+SELECT emp_id, name, dept_id
+FROM emp e
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM departments d
+    WHERE d.department_id = e.dept_id
+);
+
+SELECT orders.order_date
+FROM orders
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM people
+    WHERE last_name = 'k'
+);
+
+-- Performance comparison examples (same in Oracle)
+-- EXISTS (usually fastest for large datasets)
+SELECT customer_id, customer_name
+FROM customers c
+WHERE EXISTS (
+    SELECT 1 FROM orders o WHERE o.customer_id = c.customer_id
+);
+
+-- IN (can be slower with large subquery results)
+SELECT customer_id, customer_name
+FROM customers c
+WHERE customer_id IN (
+    SELECT customer_id FROM orders WHERE customer_id IS NOT NULL
+);
+
+-- JOIN (good for retrieving additional columns)
+SELECT DISTINCT c.customer_id, c.customer_name
+FROM customers c
+INNER JOIN orders o ON c.customer_id = o.customer_id;
+
+-- Oracle Index creation syntax
+CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+CREATE INDEX idx_employees_dept_id ON emp(dept_id);
+
+-- Oracle covering index
+CREATE INDEX idx_orders_cover ON orders(customer_id, order_date, total_amount);
+
+SELECT * FROM emp;
+
+-- Oracle DELETE with EXISTS
+DELETE FROM emp e 
+WHERE EXISTS (
+    SELECT 1 
+    FROM employees e2 
+    WHERE EXTRACT(YEAR FROM e.hire_dt) < 2019
+      AND e2.salary > e.salary
+);
+
+-- CONSTRAINTS - ORACLE COMPATIBLE
+-- ==============================
+
+-- TABLE 1 - Oracle equivalent
+CREATE TABLE test_const(
+    stud_id NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    name NVARCHAR2(30) NOT NULL,
+    email NVARCHAR2(320) UNIQUE NOT NULL,
+    category NVARCHAR2(10) DEFAULT 'General'
+);
+
+-- VALID INSERTIONS for Oracle
+-- Test 1: Basic valid insertion with all fields
+INSERT INTO test_const (name, email, category)
+VALUES ('John Doe', 'john.doe@example.com', 'Premium');
+
+-- Test 2: Valid insertion using default category
+INSERT INTO test_const (name, email)
+VALUES ('Jane Smith', 'jane.smith@gmail.com');
+
+-- Test 3: Valid insertion with maximum length name (30 characters)
+INSERT INTO test_const (name, email, category)
+VALUES ('Christopher Alexander John', 'chris.johnson@university.edu', 'Student');
+
+-- Test 4: Valid insertion with long email (under 320 chars)
+INSERT INTO test_const (name, email)
+VALUES ('Bob Wilson', 'very.long.email.address.for.testing.maximum.length.constraints.in.database@example.com');
+
+-- Test 5: Valid insertion with minimum length fields
+INSERT INTO test_const (name, email)
+VALUES ('A', 'a@b.co');
+
+-- Test 6: Valid insertion with special characters in name
+INSERT INTO test_const (name, email, category)
+VALUES ('María José O''Connor-Smith', 'maria.jose@international.org', 'VIP');
+
+-- Test 7: Valid insertion with plus sign in email
+INSERT INTO test_const (name, email)
+VALUES ('Test User', 'user+tag@example.com');
+
+-- Test 8: Valid insertion with numbers in name
+INSERT INTO test_const (name, email)
+VALUES ('User123', 'user123@test.com');
+
+-- Test 9: Valid insertion with category exactly 10 characters
+INSERT INTO test_const (name, email, category)
+VALUES ('Max Category', 'max.cat@test.com', 'Enterprise');
+
+-- Test 10: Valid insertion with single character category
+INSERT INTO test_const (name, email, category)
+VALUES ('Min Category', 'min.cat@test.com', 'A');
+
+-- Multiple records in Oracle
+INSERT ALL
+    INTO test_const (name, email, category) VALUES ('Batch User 1', 'batch1@test.com', 'Standard')
+    INTO test_const (name, email, category) VALUES ('Batch User 2', 'batch2@test.com', 'Premium')
+    INTO test_const (name, email, category) VALUES ('Batch User 3', 'batch3@test.com', 'Basic')
+SELECT * FROM DUAL;
+
+-- TABLE 2 - Composite Primary Key in Oracle
+CREATE TABLE test_composite(
+    stud_id NUMBER GENERATED BY DEFAULT AS IDENTITY,
+    seat_no NUMBER,
+    name VARCHAR2(30) NOT NULL,
+    email VARCHAR2(320) UNIQUE NOT NULL,
+    category VARCHAR2(10) DEFAULT 'General',
+    CONSTRAINT pk_composite PRIMARY KEY (stud_id, seat_no)
+);
+
+-- TABLE 3 - Oracle equivalent with explicit constraint naming
+CREATE TABLE test_explicit(
+    stud_id NUMBER GENERATED BY DEFAULT AS IDENTITY,
+    name VARCHAR2(30) NOT NULL,
+    email VARCHAR2(320) UNIQUE NOT NULL,
+    category VARCHAR2(10) DEFAULT 'General',
+    CONSTRAINT pk_id PRIMARY KEY(stud_id)
+);
+
+-- Oracle equivalent to sp_help
+-- Use USER_TABLES, USER_CONSTRAINTS, USER_CONS_COLUMNS for metadata
+SELECT constraint_name, constraint_type, table_name
+FROM user_constraints
+WHERE table_name = 'TEST_EXPLICIT';
+
+-- TABLE 4 - ALTER TABLE to add/drop constraints in Oracle
+CREATE TABLE test_alterr(
+    emp_id NUMBER
+);
+
+ALTER TABLE test_alterr ADD CONSTRAINT pk_id PRIMARY KEY(emp_id);
+
+-- Check constraints in Oracle
+SELECT constraint_name, constraint_type
+FROM user_constraints
+WHERE table_name = 'TEST_ALTERR' AND constraint_type = 'P';
+
+ALTER TABLE test_alterr DROP CONSTRAINT pk_id;
+
+-- TABLE 5 - Index organization in Oracle (different concept than SQL Server clustering)
+CREATE TABLE test_indx(
+    id NUMBER,
+    prod_id NUMBER,
+    CONSTRAINT pk PRIMARY KEY(id)
+);
+
+-- Oracle doesn't have clustered/non-clustered indexes like SQL Server
+-- Instead, create regular indexes
+CREATE INDEX idx_prod_id ON test_indx(prod_id);
+
+CREATE TABLE test_cluster_equivalent(
+    emp_id NUMBER,
+    CONSTRAINT pk_emp_id PRIMARY KEY(emp_id)
+);
+
+-- FOREIGN KEYS in Oracle
+-- ======================
+
+-- Table 1: Harley Davidson bikes
+CREATE TABLE harley_davidson(
+    bike_id NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY
+);
+
+-- Table 2: Automobiles with bike reference
+CREATE TABLE automobiles(
+    car_id NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    bike_id NUMBER,
+    CONSTRAINT fk_auto_bike FOREIGN KEY (bike_id) 
+        REFERENCES harley_davidson(bike_id)
+);
+
+-- Table 3: Planes with car reference
+CREATE TABLE planes(
+    plane_id NUMBER GENERATED BY DEFAULT AS IDENTITY,
+    CONSTRAINT p_id PRIMARY KEY(plane_id),
+    car_id NUMBER,
+    CONSTRAINT car FOREIGN KEY (car_id) 
+        REFERENCES automobiles(car_id)
+);
+
+-- Table 4: Traffic with multiple references
+CREATE TABLE traffic(
+    plane_id NUMBER,
+    car_id NUMBER,
+    bike_id NUMBER,
+    CONSTRAINT plane2 FOREIGN KEY (plane_id) 
+        REFERENCES planes(plane_id),
+    CONSTRAINT car2 FOREIGN KEY (car_id) 
+        REFERENCES automobiles(car_id),
+    CONSTRAINT bike2 FOREIGN KEY (bike_id) 
+        REFERENCES harley_davidson(bike_id)
+);
+
+-- Table 5: Different cascade behaviors
+CREATE TABLE del_null_update(
+    plane_id NUMBER,
+    car_id NUMBER,
+    bike_id NUMBER,
+    CONSTRAINT plane3 FOREIGN KEY (plane_id) 
+        REFERENCES planes(plane_id)
+        ON DELETE SET NULL,
+    CONSTRAINT car3 FOREIGN KEY (car_id) 
+        REFERENCES automobiles(car_id)
+        ON DELETE CASCADE,  -- Oracle doesn't have NO ACTION, use CASCADE or SET NULL
+    CONSTRAINT bike3 FOREIGN KEY (bike_id) 
+        REFERENCES harley_davidson(bike_id)
+        ON DELETE CASCADE
+);
+
+-- Table 6: Cascade with default
+CREATE TABLE cascade_default(
+    plane_id NUMBER,
+    car_id NUMBER,
+    bike_id NUMBER,
+    CONSTRAINT plane23 FOREIGN KEY (plane_id) 
+        REFERENCES planes(plane_id)
+        ON DELETE CASCADE
+);
+
+-- CHECK CONSTRAINTS in Oracle
+-- ===========================
+CREATE TABLE employees_check (
+    emp_id NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    name NVARCHAR2(100),
+    age NUMBER,
+    salary NUMBER(10,2),
+    gender CHAR(1),
+    email NVARCHAR2(100),
+    CONSTRAINT chk_age CHECK (age BETWEEN 18 AND 65),
+    CONSTRAINT chk_salary CHECK (salary > 0),
+    CONSTRAINT chk_gender CHECK (gender IN ('M', 'F', 'O')),
+    CONSTRAINT chk_email CHECK (email LIKE '%@%.%')
+);
+
+-- Oracle regex check constraint for phone numbers
+CREATE TABLE phone_numbers (
+    id NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    phone NVARCHAR2(15),
+    CONSTRAINT chk_phone_format 
+        CHECK (REGEXP_LIKE(phone, '^[0-9]{3}-[0-9]{3}-[0-9]{4}$'))
+);
+
+-- UNIQUE CONSTRAINTS in Oracle
+-- ============================
+
+-- Single column unique
+CREATE TABLE users_unique (
+    user_id NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    username NVARCHAR2(50) UNIQUE,
+    email NVARCHAR2(100) UNIQUE
+);
+
+-- Composite unique constraint
+CREATE TABLE user_profiles (
+    profile_id NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    user_id NUMBER,
+    platform NVARCHAR2(50),
+    profile_name NVARCHAR2(100),
+    CONSTRAINT uk_user_platform UNIQUE (user_id, platform)
+);
+
+-- Unique constraint with function-based index (Oracle equivalent)
+CREATE TABLE products_unique (
+    product_id NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    sku NVARCHAR2(50),
+    product_name NVARCHAR2(100),
+    category_id NUMBER,
+    CONSTRAINT uk_product_sku UNIQUE (sku)
+);
+
+-- Function-based unique index allowing NULLs (Oracle style)
+CREATE TABLE employees_unique(
+    emp_id NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    ssn NVARCHAR2(11),
+    name NVARCHAR2(100)
+);
+
+-- Oracle function-based index to allow multiple NULLs but unique non-NULLs
+CREATE UNIQUE INDEX uk_employees_ssn 
+ON employees_unique(CASE WHEN ssn IS NOT NULL THEN ssn END);
+
+-- Add/Drop unique constraints in Oracle
+ALTER TABLE users_unique ADD CONSTRAINT uk_email_new UNIQUE (email);
+ALTER TABLE users_unique DROP CONSTRAINT uk_email_new;
+
+-- Oracle-specific constraint management
+-- Enable/Disable constraints (Oracle equivalent to NOCHECK/CHECK)
+ALTER TABLE employees_check DISABLE CONSTRAINT chk_age;
+ALTER TABLE employees_check ENABLE CONSTRAINT chk_age;
+
+-- Disable all constraints on a table
+BEGIN
+    FOR c IN (SELECT constraint_name FROM user_constraints WHERE table_name = 'EMPLOYEES_CHECK' AND constraint_type IN ('C','P','U','R')) LOOP
+        EXECUTE IMMEDIATE 'ALTER TABLE employees_check DISABLE CONSTRAINT ' || c.constraint_name;
+    END LOOP;
+END;
+
+
+-- Enable all constraints on a table
+BEGIN
+    FOR c IN (SELECT constraint_name FROM user_constraints WHERE table_name = 'EMPLOYEES_CHECK' AND constraint_type IN ('C','P','U','R')) LOOP
+        EXECUTE IMMEDIATE 'ALTER TABLE employees_check ENABLE CONSTRAINT ' || c.constraint_name;
+    END LOOP;
+END;
+
+
+-- Oracle sequence management (equivalent to IDENTITY concepts)
+-- Create sequence manually if needed
+CREATE SEQUENCE test_seq START WITH 1 INCREMENT BY 1;
+
+-- Use in INSERT
+INSERT INTO some_table (id, name) VALUES (test_seq.NEXTVAL, 'Test');
+
+-- Get current value
+SELECT test_seq.CURRVAL FROM DUAL;

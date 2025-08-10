@@ -1200,6 +1200,888 @@ select extract(epoch from current_timestamp) as tz,
 	   to_timestamp(168764950) as ep,
 	   to_timestamp(45655606.57486) as ep_micro;
 
+-- string / server func ----------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+SELECT 
+    CONCAT('m',' ','y',' ','s',' ','q',' ','l') AS mysql,        
+    SUBSTRING('mysql mssql postgres',8,4) AS idk,        
+    SUBSTRING('fyguhdjegvferfui',4,6) AS idk_again,        
+    UPPER('i_feel_low') AS no_u_dont,        
+    LOWER('i''m high asf') AS nah,        
+    octet_length('not so entitled') AS lessee, -- byte        
+    LENGTH('1234567 89') AS blank_space_myversion, -- char len        
+    TRIM('   claustrophobia   ') AS sry_not_sry,        
+    RTRIM('               i want some space  ') AS rightt,        
+    LTRIM('                   i want some space too           ') AS leftt,        
+    REPEAT(' hows the josh..high sir ',5) AS hurrah,        
+    CAST('123' AS INTEGER) AS unsg,        
+    CAST(123 AS TEXT) AS ch,        
+    '7887'::integer AS hmm, -- PostgreSQL cast style        
+    POSITION('u' IN 'where the tf are u?') AS here;
 
+
+-- All databases
+SELECT LEFT('Hello World', 3);  -- Returns: 'Hel'
+-- All databases
+SELECT RIGHT('Hello World', 5);  -- Returns: 'Hel'
+/*
+ -- Extract area code from phone number
+SELECT
+    name,
+    LEFT(phone, 3) AS area_code,
+    RIGHT(phone, 4) AS last_four
+FROM customers
+WHERE phone IS NOT NULL;
+
+-- Get file extension
+SELECT
+    filename,
+    RIGHT(filename, 3) AS extension
+FROM documents
+WHERE filename LIKE '%.%';
+
+-- Extract initials
+SELECT
+    name,
+    LEFT(first_name, 1) + LEFT(last_name, 1) AS initials
+FROM employees;
+ */
+-- edge cases
+SELECT LEFT('Hi', 10);   -- Returns: 'Hi' (doesn't error)
+SELECT RIGHT('Hi', 10);  -- Returns: 'Hi' (doesn't error)
+
+-- Zero or negative length:
+SELECT LEFT('Hello', 0);   -- Returns: '' (empty string)
+SELECT LEFT('Hello', -1);  -- Returns: '' (empty string)
+-- NULL handling:
+SELECT LEFT(NULL, 5);      -- Returns: NULL
+SELECT RIGHT('Hello', NULL); -- Returns: NULL
+-- For ASCII characters - they return the same value
+SELECT LENGTH('Hello World');           -- Result: 11 (bytes)
+SELECT OCTET_LENGTH('Hello World');      -- Result: 11 (characters)
+
+-- For multibyte characters - they differ significantly
+SELECT LENGTH('Hello 世界');            -- Result: 13 (bytes)
+SELECT OCTET_LENGTH('Hello 世界');       -- Result: 8 (characters)
+
+-- More examples with different encodings
+SELECT LENGTH('café');                  -- Result: 5 (bytes - é takes 2 bytes in UTF-8)
+SELECT OCTET_LENGTH('café');             -- Result: 4 (characters)
+
+SELECT LENGTH('🚀📱💻');                -- Result: 12 (bytes - each emoji is 4 bytes)
+SELECT OCTET_LENGTH('🚀📱💻');           -- Result: 3 (characters)
+
+
+-- User input validation (character limit)
+/*
+SELECT username FROM users WHERE CHAR_LENGTH(username) <= 50;  -- 50 characters max
+
+-- Database storage calculation (byte limit)
+SELECT username FROM users WHERE LENGTH(username) <= 200;      -- 200 bytes max
+
+-- Mixed content analysis
+SELECT
+    comment,
+    CHAR_LENGTH(comment) as char_count,
+    LENGTH(comment) as byte_count,
+    LENGTH(comment) - CHAR_LENGTH(comment) as multibyte_chars
+FROM posts;
+
+
+*/
+
+
+-- case stm / alternatives -------------------------------------------------------------------------------------------------------
+-- CORRELATION --------------------------------------------------------------------------------------------------------------------------
+
+-- syntax basic
+-- General syntax
+/*SELECT columns
+FROM table1 t1
+WHERE condition AND (
+    SELECT columns
+    FROM table2 t2
+    WHERE t2.column = t1.column  -- This creates correlation
+    );*/
+
+select orders.customer_id , order_date from orders
+    where customer_id > 3 and exists(
+        select customer_id from customers
+                           where orders.customer_id = customers.customer_id
+        );
+
+select orders.order_date from orders where exists(
+    select * from people where last_name = 'k'
+); -- EXISTS is a logical operator that tests whether a subquery returns any rows.
+   -- It returns TRUE if the subquery contains any rows, FALSE otherwise.
+
+
+SELECT emp_id, name, dept_id
+FROM emp e
+WHERE EXISTS (
+    SELECT 1
+    FROM departments d
+    WHERE d.department_id = e.dept_id
+);
+
+SELECT emp_id, name, dept_id
+FROM emp e
+WHERE not EXISTS (
+    SELECT 1
+    FROM departments d
+    WHERE d.department_id = e.dept_id
+);
+
+select orders.order_date
+from orders
+where not exists(select *
+                 from people
+                 where last_name = 'k');
+-- not EXISTS is a logical operator that tests whether a subquery returns any rows.
+-- It returns FALSE if the subquery contains any rows, TRUE otherwise.
+
+-- EXISTS (usually fastest for large datasets)
+SELECT customer_id, customer_name
+FROM customers c
+WHERE EXISTS (
+    SELECT 1 FROM orders o WHERE o.customer_id = c.customer_id
+);
+
+-- IN (can be slower with large subquery results)
+SELECT customer_id, customer_name
+FROM customers c
+WHERE customer_id IN (
+    SELECT DISTINCT customer_id FROM orders
+);
+
+-- JOIN (good for retrieving additional columns)
+SELECT DISTINCT c.customer_id, c.customer_name
+FROM customers c
+         INNER JOIN orders o ON c.customer_id = o.customer_id;
+
+-- Use indexes on correlated columns
+CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+CREATE INDEX idx_employees_dept_id ON emp(dept_id);
+
+-- Prefer EXISTS over IN for better performance
+-- Good
+-- WHERE EXISTS (SELECT 1 FROM orders WHERE customer_id = c.customer_id);
+
+-- Less efficient
+-- WHERE customer_id IN (SELECT customer_id FROM orders);
+
+-- Use covering indexes when possible
+CREATE INDEX idx_orders_cover ON orders(customer_id, order_date, total_amount);
+
+SELEct * from emp;
+
+delete from emp e where exists(
+    select 1 from employees e2 where extract(year from e.hire_dt) < '2019'
+                         and e2.salary > e.salary);
+
+
+-- contraints -----------------------------primary key---------not null----------unique----------------default--------composite pk--------contraint keyword--------------------------------
+
+-- TABLE 1 -------------------------------------------------------------------------------------------------------------------------
+create table test_const(
+    stud_id int serial primary key ,
+    name varchar(30) not null,
+    email varchar(320) unique not null,
+    category varchar(10) default 'General'
+);
+-- TABLE 1---------------------------------------------------------------------------------------------------------------
+
+-- TESTS -------------------------------------------------------------------------------------------------------------------------------------------------
+-- MySQL Insertion Tests for test_const table
+-- Table structure:
+-- stud_id: INT PRIMARY KEY AUTO_INCREMENT
+-- name: VARCHAR(30) NOT NULL
+-- email: VARCHAR(320) UNIQUE NOT NULL
+-- category: VARCHAR(10) DEFAULT 'General'
+
+-- ========================================
+-- ✅ VALID INSERTIONS (WILL SUCCEED)
+-- ========================================
+
+-- Test 1: Basic valid insertion with all fields ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('John Doe', 'john.doe@example.com', 'Premium');
+
+-- Test 2: Valid insertion using default category ✅
+INSERT INTO test_const (name, email)
+VALUES ('Jane Smith', 'jane.smith@gmail.com');
+
+-- Test 3: Valid insertion with maximum length name (30 characters) ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('Christopher Alexander John', 'chris.johnson@university.edu', 'Student');
+
+-- Test 4: Valid insertion with long email (under 320 chars) ✅
+INSERT INTO test_const (name, email)
+VALUES ('Bob Wilson', 'very.long.email.address.for.testing.maximum.length.constraints.in.database@example.com');
+
+-- Test 5: Valid insertion with minimum length fields ✅
+INSERT INTO test_const (name, email)
+VALUES ('A', 'a@b.co');
+
+-- Test 6: Valid insertion with special characters in name ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('María José O''Connor-Smith', 'maria.jose@international.org', 'VIP');
+
+-- Test 7: Valid insertion with plus sign in email ✅
+INSERT INTO test_const (name, email)
+VALUES ('Test User', 'user+tag@example.com');
+
+-- Test 8: Valid insertion with numbers in name ✅
+INSERT INTO test_const (name, email)
+VALUES ('User123', 'user123@test.com');
+
+-- Test 9: Valid insertion with category exactly 10 characters ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('Max Category', 'max.cat@test.com', 'Enterprise');
+
+-- Test 10: Valid insertion with single character category ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('Min Category', 'min.cat@test.com', 'A');
+
+-- Test 11: Name at exact 30 character limit ✅
+INSERT INTO test_const (name, email)
+VALUES ('Maximilian Bartholomew Jones1', 'max.bart@example.com');
+
+-- Test 12: Email with subdomain and long TLD ✅
+INSERT INTO test_const (name, email)
+VALUES ('Domain Test', 'user@mail.subdomain.example.museum');
+
+-- Test 13: Category at exact 10 character limit ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('Boundary Test', 'boundary@test.com', '1234567890');
+
+-- Test 14: Explicit NULL for category (will use default 'General') ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('Default Test', 'default@test.com', NULL);
+
+-- Test 15: Empty string for category ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('Empty Cat', 'empty.cat@test.com', '');
+
+-- Test 16: International domain name ✅
+INSERT INTO test_const (name, email)
+VALUES ('International', 'user@example.org');
+
+-- Test 17: Very short but valid email ✅
+INSERT INTO test_const (name, email)
+VALUES ('Short Email', 'x@y.co');
+
+-- Test 18: Category with spaces ✅
+INSERT INTO test_const (name, email, category)
+VALUES ('Space Category', 'space.cat@test.com', 'VIP Guest');
+
+-- Test 19: Explicit stud_id (works but not recommended) ✅
+INSERT INTO test_const (stud_id, name, email)
+VALUES (1000, 'Explicit ID', 'explicit.id@test.com');
+
+-- Test 20: Multiple valid records in single statement ✅
+INSERT INTO test_const (name, email, category) VALUES
+                                                   ('Batch User 1', 'batch1@test.com', 'Standard'),
+                                                   ('Batch User 2', 'batch2@test.com', 'Premium'),
+                                                   ('Batch User 3', 'batch3@test.com', 'Basic');
+
+-- ========================================
+-- ❌ INVALID INSERTIONS (WILL FAIL)
+-- ========================================
+
+-- Test 21: NULL name violation ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES (NULL, 'null.name@test.com');
+
+-- Test 22: NULL email violation ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('Null Email', NULL);
+
+-- Test 23: Duplicate email violation ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('Duplicate Email', 'john.doe@example.com');
+
+-- Test 24: Name too long (31 characters) ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('Christopher Alexander Johnson Jr', 'toolong.name@test.com');
+
+-- Test 25: Email too long (over 320 characters) ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('Long Email Test', 'this.email.address.is.intentionally.very.long.to.test.the.maximum.length.constraint.and.should.fail.because.it.exceeds.the.three.hundred.twenty.character.limit.that.was.set.in.the.table.definition.for.the.email.field.which.should.cause.a.constraint.violation.error.and.this.makes.it.even.longer@example.com');
+
+-- Test 26: Category too long (11 characters) ❌
+-- INSERT INTO test_const (name, email, category)
+-- VALUES ('Long Category', 'long.cat@test.com', 'TooLongCat1');
+
+-- Test 27: Empty name string (fails NOT NULL constraint) ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('', 'empty.name@test.com');
+
+-- Test 28: Empty email string (fails NOT NULL constraint) ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('Empty Email', '');
+
+-- Test 29: Name with only spaces (fails NOT NULL in practice) ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('   ', 'spaces.name@test.com');
+
+-- Test 30: Email with only spaces (fails NOT NULL in practice) ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('Spaces Email', '   ');
+
+-- Test 31: Invalid email format (no @ symbol) ❌
+-- INSERT INTO test_const (name, email)
+-- VALUES ('Invalid Email', 'notanemail.com');
+
+-- Test 32: Batch with one invalid record (entire batch fails) ❌
+-- INSERT INTO test_const (name, email, category) VALUES
+--     ('Valid User', 'valid.batch@test.com', 'Standard'),
+--     (NULL, 'invalid.batch@test.com', 'Premium');
+
+-- Test 33: Negative stud_id (may fail depending on AUTO_INCREMENT settings) ❌
+-- INSERT INTO test_const (stud_id, name, email)
+-- VALUES (-1, 'Negative ID', 'negative.id@test.com');
+
+-- Test 34: Zero stud_id (may fail depending on AUTO_INCREMENT settings) ❌
+-- INSERT INTO test_const (stud_id, name, email)
+-- VALUES (0, 'Zero ID', 'zero.id@test.com');
+
+-- TESTS -------------------------------------------------------------------------------------------------------------------------------------
+
+-- TABLE 2 -----------------------------------------------------------------------------------------------------------------------------
+
+create table test_composite(
+                           stud_id int serial,
+                           seat_no int ,
+                           name varchar(30) not null,
+                           email varchar(320) unique not null,
+                           category varchar(10) default 'General',
+                           primary key (stud_id,seat_no)
+);
+
+--  TABLE 3 -----------------------------------------------------------------------------------------------------------------------------
+create table test_explicit(
+                               stud_id int serial,
+                               name varchar(30) not null,
+                               email varchar(320) unique not null,
+                               category varchar(10) default 'General',
+                               constraint pk_id primary key(stud_id)
+);
+
+/*
+**🎯 You mean `SET IDENTITY_INSERT = ON`**
+
+This is a **SQL Server specific** command that allows you to manually insert values into an IDENTITY column:
+
+## **📝 Correct Syntax:**
+
+```sql
+-- Turn ON to allow manual inserts into IDENTITY column
+SET IDENTITY_INSERT table_name ON;
+
+-- Insert with explicit IDENTITY values
+INSERT INTO table_name (identity_column, other_columns)
+VALUES (100, 'some_value');
+
+-- Turn OFF when done (IMPORTANT!)
+SET IDENTITY_INSERT table_name OFF;
+```
+
+## **🔧 Practical Example:**
+
+```sql
+CREATE TABLE test_identity(
+    stud_id INT IDENTITY(1,1) PRIMARY KEY,
+    name NVARCHAR(30) NOT NULL
+);
+
+-- Normal insert (IDENTITY auto-generates)
+INSERT INTO test_identity (name) VALUES ('John');  -- Gets stud_id = 1
+
+-- Manual insert with IDENTITY_INSERT
+SET IDENTITY_INSERT test_identity ON;
+
+INSERT INTO test_identity (stud_id, name) 
+VALUES (100, 'Manual ID User');  -- Explicitly sets stud_id = 100
+
+SET IDENTITY_INSERT test_identity OFF;
+
+-- Back to normal auto-generation
+INSERT INTO test_identity (name) VALUES ('Jane');  -- Gets stud_id = 101
+```
+
+## **⚠️ Important Rules:**
+
+- **Only ONE table** can have `IDENTITY_INSERT ON` at a time per session
+- **Must specify IDENTITY column** in INSERT statement when ON
+- **Must turn OFF** when finished
+- **Next auto-generated value** continues from highest existing value
+- **Session-specific** setting
+
+## **🚨 Common Errors:**
+
+```sql
+-- ❌ Wrong syntax
+SET @@IDENTITY_INSERT = ON;  -- This doesn't exist!
+
+-- ✅ Correct syntax  
+SET IDENTITY_INSERT table_name ON;
+```
+
+**🎯 Use cases:**
+- Data migration
+- Preserving specific ID values
+- Fixing gaps in IDENTITY sequence
+- Bulk data imports with existing IDs
+*/
+-- TABLE 4 -----------------------------------------------------------------------------------------------------------------------------------------------
+create table test_alterr(
+    emp_id int
+);
+
+alter table test_alterr add constraint pk_id primary key(emp_id);
+alter table test_alterr drop constraint pk_id ;
+
+
+-- TABLE 5 -----------------------------------GHOST CONSTRAINT PROBLEM-----------cluster idx by def and on nonclus table---------------------------------------------------------------------------------------------------
+
+-- 💀 Ghost Constraints in PostgreSQL:
+-- 🎯 PostgreSQL vs SQL Server - Ghost Handling:
+-- PostgreSQL (Much Better):
+-- sql-- PostgreSQL: Clean failure handling
+CREATE TABLE test_table(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(30),
+    CONSTRAINT pk_test PRIMARY KEY(id)  -- If this fails...
+);
+-- Error occurs, but NO ghost constraints left behind! ✅
+-- 🔧 Why PostgreSQL is cleaner:
+
+/*MVCC Architecture - Better transaction isolation
+Atomic DDL - All-or-nothing table creation
+Better rollback - Complete cleanup on failure
+Simpler catalog - Less complex system tables*/
+
+/*create table test_indx(
+    id int,
+    prod_id int,
+    CONSTRAINT pk PRIMARY key nonclustered(id)
+);
+create CLUSTERED index clus on test_indx(prod_id);
+
+create table test_clusterr(
+        emp_id int,
+        CONSTRAINT pk_idddd PRIMARY key CLUSTERED(emp_id) -- GHOST CONSTRAINT PROBLEM
+);
+create table test_noncluster(
+        emp_id int,
+        CONSTRAINT pk_iddd PRIMARY key CLUSTERED(emp_id) -- GHOST CONSTRAINT PROBLEM
+);*/
+-- pk_id , pk_idd are ghosts with no table
+
+/* Msg 2714, Level 16, State 5, Line 1
+There is already an object named 'pk_id' in the database.
+Msg 1750, Level 16, State 1, Line 1
+Could not create constraint or index. See previous errors.
+Total execution time: 00:00:00.005 */
+
+/***🚨 The "Ghost Constraint" Problem!**
+
+## **🔍 What happens when CREATE TABLE fails:**
+
+When a `CREATE TABLE` statement fails **midway through execution**, SQL Server sometimes leaves behind "orphaned" constraint names in the system catalog.
+
+## **📝 Example Scenario:**
+
+```sql
+-- This CREATE TABLE fails due to some error
+CREATE TABLE test_table(
+    id INT,
+    name VARCHAR(30) NOT NULL,
+    email VARCHAR(500),  -- Let's say this causes an error
+    CONSTRAINT pk_id PRIMARY KEY(id)
+);
+-- ERROR: Table creation fails, but constraint name "pk_id" gets registered
+```
+
+## **🔧 What gets "reserved":**
+
+**SQL Server's internal process:**
+1. **Parse SQL** ✅ - Registers constraint name `pk_id`
+2. **Validate columns** ❌ - Fails here (example: invalid datatype)
+3. **Create table** ❌ - Never reaches this step
+4. **Create constraints** ❌ - Never reaches this step
+
+**Result:** `pk_id` exists in system catalogs but **no actual table or constraint**!
+
+## **🕵️ How to find these "ghost" constraints:**
+
+```sql
+-- Check for orphaned constraint names
+SELECT 
+    kc.name AS constraint_name,
+    t.name AS table_name,
+    kc.object_id,
+    t.object_id
+FROM sys.key_constraints kc
+LEFT JOIN sys.tables t ON kc.parent_object_id = t.object_id
+WHERE kc.name = 'pk_id';
+
+-- If table_name is NULL, it's a "ghost" constraint!
+```
+
+## **🧹 Cleanup methods:**
+
+**Method 1: Try to drop it anyway**
+```sql
+-- This might work even if table doesn't exist
+DROP INDEX pk_id ON some_table_name;
+-- OR
+ALTER TABLE some_table_name DROP CONSTRAINT pk_id;
+```
+
+**Method 2: Database consistency check**
+```sql
+-- Run database repair
+DBCC CHECKDB('your_database_name') WITH REPAIR_ALLOW_DATA_LOSS;
+```
+
+**Method 3: Use different constraint name**
+```sql
+-- Simplest solution - just use a new name
+CONSTRAINT pk_id_new PRIMARY KEY(stud_id)
+```
+
+## **🎯 Why this happens:**
+- **Transaction rollback** issues
+- **System catalog corruption**
+- **Interrupted DDL operations**
+- **SQL Server internal bugs**
+
+**💡 This is why many DBAs prefer auto-generated constraint names or very specific naming conventions!** */
+
+/*
+**💀 Ah! The "Ghost Constraint" happens AFTER the IDENTITY_INSERT issue!**
+
+## **🔍 The Chain of Events:**
+
+**Step 1: IDENTITY_INSERT Error**
+```sql
+-- You try this and it fails
+INSERT INTO some_table (id, name) VALUES (100, 'Test');
+-- Error: IDENTITY_INSERT is OFF
+```
+
+**Step 2: You fix it with SET IDENTITY_INSERT**
+```sql
+SET IDENTITY_INSERT some_table ON;
+INSERT INTO some_table (id, name) VALUES (100, 'Test');  -- ✅ Works
+SET IDENTITY_INSERT some_table OFF;
+```
+
+**Step 3: Later you try to CREATE new table with same constraint name**
+```sql
+-- This fails with "pk_id already exists"
+CREATE TABLE new_table(
+    id INT,
+    CONSTRAINT pk_id PRIMARY KEY(id)  -- ❌ Ghost constraint!
+);
+*/
+
+ -- FOREIGN KEYS ------------------------------------------ LAST TOPIC --------------------------------------------------------------------------------------------------------------------------
+
+
+-- Table 1: Harley Davidson bikes
+CREATE TABLE harley_davidson(
+    bike_id SERIAL PRIMARY KEY
+);
+
+-- Table 2: Automobiles with bike reference
+CREATE TABLE automobiles(
+    car_id SERIAL PRIMARY KEY,
+    bike_id INT,
+    CONSTRAINT fk_auto_bike FOREIGN KEY (bike_id) 
+        REFERENCES harley_davidson(bike_id)
+);
+
+-- Table 3: Planes with car reference
+CREATE TABLE planes(
+    plane_id SERIAL,
+    CONSTRAINT p_id PRIMARY KEY(plane_id),
+    car_id INT,
+    CONSTRAINT car FOREIGN KEY (car_id) 
+        REFERENCES automobiles(car_id)
+);
+
+-- Table 4: Traffic with multiple references
+CREATE TABLE traffic(
+    plane_id INT,
+    car_id INT,
+    bike_id INT,
+    CONSTRAINT plane2 FOREIGN KEY (plane_id) 
+        REFERENCES planes(plane_id),
+    CONSTRAINT car2 FOREIGN KEY (car_id) 
+        REFERENCES automobiles(car_id),
+    CONSTRAINT bike2 FOREIGN KEY (bike_id) 
+        REFERENCES harley_davidson(bike_id)
+);
+
+-- Table 5: Different cascade behaviors
+CREATE TABLE del_null_update(
+    plane_id INT,
+    car_id INT,
+    bike_id INT,
+    CONSTRAINT plane3 FOREIGN KEY (plane_id) 
+        REFERENCES planes(plane_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE,
+    CONSTRAINT car3 FOREIGN KEY (car_id) 
+        REFERENCES automobiles(car_id)
+        ON DELETE RESTRICT
+        ON UPDATE RESTRICT,
+    CONSTRAINT bike3 FOREIGN KEY (bike_id) 
+        REFERENCES harley_davidson(bike_id)
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION
+);
+
+-- Table 6: Cascade with default
+CREATE TABLE cascade_default(
+    plane_id INT,
+    car_id INT,
+    bike_id INT,
+    CONSTRAINT plane23 FOREIGN KEY (plane_id) 
+        REFERENCES planes(plane_id)
+        ON DELETE CASCADE
+        ON UPDATE SET NULL
+);
+
+-- ========================================
+-- KEY DIFFERENCES SUMMARY
+-- ========================================
+
+/*
+MySQL vs SQL Server vs PostgreSQL:
+
+AUTO_INCREMENT vs IDENTITY vs SERIAL:
+- MySQL: AUTO_INCREMENT
+- SQL Server: IDENTITY(1,1) 
+- PostgreSQL: SERIAL
+
+RESTRICT Support:
+- MySQL: ✅ RESTRICT supported
+- SQL Server: ❌ Use NO ACTION instead
+- PostgreSQL: ✅ RESTRICT supported
+
+ON UPDATE SET NULL:
+- MySQL: ✅ Supported
+- SQL Server: ✅ Supported  
+- PostgreSQL: ✅ Supported
+
+ON DELETE SET DEFAULT:
+- MySQL: ✅ Supported (but risky)
+- SQL Server: ✅ Supported (but risky)
+- PostgreSQL: ✅ Supported (but risky)
+
+Data Types:
+- MySQL: VARCHAR
+- SQL Server: NVARCHAR (for Unicode)
+- PostgreSQL: VARCHAR or TEXT
+*/
+
+-- check --------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE employeess (
+    emp_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    age INT,
+    salary DECIMAL(10,2),
+    email VARCHAR(100),
+    CONSTRAINT chk_age CHECK (age >= 18 AND age <= 65),
+    CONSTRAINT chk_salary CHECK (salary > 0),
+    CONSTRAINT chk_email CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
+);
+
+-- Array check constraints
+CREATE TABLE user_permissions (
+    user_id SERIAL PRIMARY KEY,
+    permissions TEXT[],
+    CONSTRAINT chk_valid_permissions 
+        CHECK (permissions <@ ARRAY['read', 'write', 'delete', 'admin'])
+);
+
+-- JSON check constraints
+CREATE TABLE user_settings (
+    user_id SERIAL PRIMARY KEY,
+    settings JSONB,
+    CONSTRAINT chk_valid_theme 
+        CHECK (settings->>'theme' IN ('light', 'dark', 'auto')),
+    CONSTRAINT chk_valid_language 
+        CHECK (settings->>'language' ~ '^[a-z]{2}$')
+);
+
+-- Range check constraints
+CREATE TABLE events (
+    event_id SERIAL PRIMARY KEY,
+    event_name VARCHAR(100),
+    event_date DATERANGE,
+    CONSTRAINT chk_future_event 
+        CHECK (lower(event_date) > CURRENT_DATE)
+);
+
+-- Custom function in check constraint
+CREATE OR REPLACE FUNCTION is_valid_ssn(ssn TEXT) 
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN ssn ~ '^\d{3}-\d{2}-\d{4}$';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TABLE persons (
+    person_id SERIAL PRIMARY KEY,
+    ssn VARCHAR(11),
+    CONSTRAINT chk_valid_ssn CHECK (is_valid_ssn(ssn))
+);
+select * from employees;
+-- Add check constraint
+ALTER TABLE employees
+ADD CONSTRAINT chk_valid_hire_date 
+CHECK (hire_date >= '2010-01-01');
+
+-- Drop check constraint
+ALTER TABLE employeess DROP CONSTRAINT chk_age;
+
+-- unique ---------------------------------------------------------------------------------------------------------------------------
+CREATE TABLE employeesss (
+    emp_id SERIAL PRIMARY KEY,
+    email VARCHAR(100),
+    status VARCHAR(20)
+);
+
+-- Create partial unique index separately
+CREATE UNIQUE INDEX uk_active_email 
+ON employeesss(email) 
+WHERE status = 'active';
+
+-- exclude psql specific ------------------------------------------------------------------------------------------------------------------
+
+-- C**🚨 Your PostgreSQL EXCLUDE constraint needs the GiST extension!**
+
+-- ## **❌ What's missing:**
+
+-- The **`btree_gist`** extension must be enabled for the `=` operator on integers in GiST indexes.
+-- ## **✅ Corrected Version:**
+
+
+-- Step 1: Enable required extension
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+-- Step 2: Create table with EXCLUDE constraint
+CREATE TABLE room_bookings (
+    booking_id SERIAL PRIMARY KEY,
+    room_id INT,
+    booking_period TSRANGE,
+    EXCLUDE USING GIST (room_id WITH =, booking_period WITH &&)
+);
+
+
+-- ## **🔍 Why this happens:**
+
+/* **GiST index requirements:**
+- **`&&` operator**: Built-in for TSRANGE ✅
+- **`=` operator**: Needs `btree_gist` extension for INT types ❌
+
+**Without extension:**
+
+-- This fails because = operator not available for INT in GiST
+EXCLUDE USING GIST (room_id WITH =, booking_period WITH &&)
+--                           ^^^^ Needs btree_gist extension
+
+## **🎯 What your constraint does (brilliant design!):**
+
+**Prevents overlapping bookings:**
+
+-- These inserts will work */
+INSERT INTO room_bookings VALUES 
+    (1, 101, '[2024-01-01 09:00, 2024-01-01 11:00)'),  -- Room 101, 9-11am
+    (2, 101, '[2024-01-01 11:00, 2024-01-01 13:00)'),  -- Room 101, 11am-1pm ✅
+    (3, 102, '[2024-01-01 09:00, 2024-01-01 11:00)');  -- Room 102, 9-11am ✅
+
+-- This will FAIL - overlapping booking for same room
+INSERT INTO room_bookings VALUES 
+    (4, 101, '[2024-01-01 10:00, 2024-01-01 12:00)');  -- ❌ Overlaps with booking 1
+
+-- ## **🔧 Alternative Solutions:**
+
+**Option 1: Use different index method**
+
+-- Less efficient but works without extension
+CREATE TABLE room_bookings (
+    booking_id SERIAL PRIMARY KEY,
+    room_id INT,
+    booking_period TSRANGE,
+    CONSTRAINT no_overlap_check CHECK (
+        NOT EXISTS (
+            SELECT 1 FROM room_bookings rb2 
+            WHERE rb2.room_id = room_id 
+            AND rb2.booking_period && booking_period
+            AND rb2.booking_id != booking_id
+        )
+    )
+)
+
+**Option 2: Use trigger-based validation**
+
+CREATE TABLE room_bookings (
+    booking_id SERIAL PRIMARY KEY,
+    room_id INT,
+    booking_period TSRANGE
+);
+
+-- Trigger to prevent overlaps
+CREATE OR REPLACE FUNCTION check_booking_overlap()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM room_bookings 
+        WHERE room_id = NEW.room_id 
+        AND booking_period && NEW.booking_period
+        AND booking_id != NEW.booking_id
+    ) THEN
+        RAISE EXCEPTION 'Booking period overlaps with existing booking';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- ## **🏆 Best Solution:**
+
+-- sql
+-- Enable extension once per database
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+-- Then your original table works perfectly
+CREATE TABLE room_bookings (
+    booking_id SERIAL PRIMARY KEY,
+    room_id INT,
+    booking_period TSRANGE,
+    EXCLUDE USING GIST (room_id WITH =, booking_period WITH &&)
+);
+
+-- **💡 The fix: Just add `CREATE EXTENSION IF NOT EXISTS btree_gist;` before your table creation!** 🎯
+
+
+BEGIN;
+SET CONSTRAINTS ALL DEFERRED;
+
+INSERT INTO employes (emp_id, name, manager_id) VALUES (1, 'CEO', NULL);
+INSERT INTO employes (emp_id, name, manager_id) VALUES (2, 'Manager', 1);
+UPDATE employes SET manager_id = 2 WHERE emp_id = 1;  -- Circular reference
+
+COMMIT;  -- Constraints checked here
+
+
+-- PostgreSQL: Validate constraints without blocking
+-- ALTER TABLE large_table VALIDATE CONSTRAINT constraint_name;
