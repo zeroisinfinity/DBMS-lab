@@ -1,4 +1,4 @@
-```plsql
+```psql
 SELECT name FROM v$database;           -- Shows DB name  
 SELECT username FROM all_users;       -- Lists all schemas
 
