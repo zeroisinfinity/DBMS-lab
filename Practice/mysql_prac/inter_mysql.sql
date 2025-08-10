@@ -1760,3 +1760,57 @@ SELECT '2027-09-09 10:09:45' AS input_literal,
        CAST('2027-09-09 10:09:45' AS DATETIME(6)) AS datetime_used,
        CAST(convert_tz('2027-09-09 10:09:45',@@session.time_zone) AS TIMESTAMP(6)) AS timestamp_used;*/
 
+-- string/server functions ---------------------------------------------------------------------------------------------------------------------------------------
+
+select concat('m',' ','y',' ','s',' ','q',' ','l') as mysql,
+       substring('mysql mssql postgres',8,4) as idk,
+       substr('fyguhdjegvferfui',4,6) as idk_again,
+       upper('i_feel_low') as no_u_dont,
+       lower('i\'m high asf') as nah,
+       length('not so ""entitled""') as lessee, -- byte
+       char_length('1234567 89') as blank_space_myversion, -- char len
+       trim('   claustrophobia   ') as sry_not_sry,
+       rtrim('               i want some space  ') rightt,
+       ltrim('                   i want some space too           ') nah,
+       repeat(' hows the josh..high sir ',5) as hurrah,
+       cast('123' as unsigned ) as unsg,
+       cast(123 as char) as ch,
+       convert('345',unsigned) as hmm,
+       locate('u','where the tf are u?') as here,
+       instr('find me','me') as seek;
+
+-- For ASCII characters - they return the same value
+SELECT LENGTH('Hello World');           -- Result: 11 (bytes)
+SELECT CHAR_LENGTH('Hello World');      -- Result: 11 (characters)
+
+-- For multibyte characters - they differ significantly
+SELECT LENGTH('Hello 世界');            -- Result: 13 (bytes)
+SELECT CHAR_LENGTH('Hello 世界');       -- Result: 8 (characters)
+
+-- More examples with different encodings
+SELECT LENGTH('café');                  -- Result: 5 (bytes - é takes 2 bytes in UTF-8)
+SELECT CHAR_LENGTH('café');             -- Result: 4 (characters)
+
+SELECT LENGTH('🚀📱💻');                -- Result: 12 (bytes - each emoji is 4 bytes)
+SELECT CHAR_LENGTH('🚀📱💻');           -- Result: 3 (characters)
+
+
+-- User input validation (character limit)
+/*
+SELECT username FROM users WHERE CHAR_LENGTH(username) <= 50;  -- 50 characters max
+
+-- Database storage calculation (byte limit)
+SELECT username FROM users WHERE LENGTH(username) <= 200;      -- 200 bytes max
+
+-- Mixed content analysis
+SELECT
+    comment,
+    CHAR_LENGTH(comment) as char_count,
+    LENGTH(comment) as byte_count,
+    LENGTH(comment) - CHAR_LENGTH(comment) as multibyte_chars
+FROM posts;
+
+
+*/
+
+
