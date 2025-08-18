@@ -1,3 +1,4 @@
+```plsql
 SELECT name FROM v$database;           -- Shows DB name  
 SELECT username FROM all_users;       -- Lists all schemas
 
@@ -1530,6 +1531,8 @@ CREATE SEQUENCE test_seq START WITH 1 INCREMENT BY 1;
 
 -- Use in INSERT
 INSERT INTO some_table (id, name) VALUES (test_seq.NEXTVAL, 'Test');
+
+```
 
 -- Get current value
 SELECT test_seq.CURRVAL FROM DUAL;
